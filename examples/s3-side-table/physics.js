@@ -137,7 +137,8 @@ const PHYS = (() => {
   // ------------------------------------------------------------------ substep
   function substep(dt) {
     st.t += dt;
-    if (st.script) {                                                  // test hook: a hand target moving like a pointer
+    if (st.seq) seqStep(dt);
+    else if (st.script) {                                             // test hook: a hand target moving like a pointer
       const sc = st.script;
       if (sc.phase === "move") { const dir = Math.sign(sc.to - st.target); st.target += dir * sc.v * dt; st.vh = dir * sc.v;
         if ((sc.to - st.target) * dir <= 0) { st.target = sc.to; st.vh = 0; sc.phase = "hold"; sc.t = 0; } }
@@ -273,8 +274,49 @@ const PHYS = (() => {
     grab(); const lead = Math.sign(to - st.lift) * 120 / K_HAND;       // the hand overshoots so the spring can push
     st.script = { phase: "move", to: to + lead, v, hold };
   }
+  // tap-to-cycle: the hand carries the carriage through legs at a constant speed, with a gentle
+  // accel/decel at each turn; the physics (strut, latch cam, guide, pins) still runs underneath it
+  const SEQ_A = 1500;                                                 // mm/s^2, model time
+  function seqStep(dt) {
+    const q = st.seq, lg = q.legs[q.i];
+    if (!lg) { st.seq = null; release(); return; }
+    if (lg.hold != null) { if ((q.t += dt) >= lg.hold) { q.i++; q.t = 0; } st.vh = 0; return; }
+    if (lg.rel) { release(); q.i++; return; }
+    if (lg.to0 == null) { lg.to0 = lg.to + Math.sign(lg.to - st.target) * 2; }   // 2 mm lead so the hand spring can push
+    const rem = lg.to0 - st.target, dir = Math.sign(rem);
+    const vcap = Math.min(q.v, Math.sqrt(2 * SEQ_A * Math.abs(rem)));
+    q.u = Math.min(vcap, (q.u || 0) + SEQ_A * dt);
+    const stepd = q.u * dt;
+    if (Math.abs(rem) <= stepd || dir === 0) { st.target = lg.to0; st.vh = 0; q.u = 0; q.i++; q.t = 0; return; }
+    st.target += dir * stepd; st.vh = dir * q.u;
+  }
+  // one tap opens, the next closes: below half lift it opens, above it closes and latches
+  function cycle(v) {
+    st.script = null; grab();
+    const legs = [], open = st.lift < LIFT_TOP / 2;
+    if (open) {
+      if (st.lift < 20) legs.push({ to: -5 }, { hold: 0.12 });          // push into overtravel: the cam lets the pin out
+      legs.push({ to: LIFT_TOP }, { hold: 0.15 });
+    } else {
+      legs.push({ to: -5 }, { hold: 0.15 });
+      if (!P.motor) legs.push({ to: 0 });                              // strut off: nothing lifts it onto the latch, the hand does
+    }
+    legs.push({ rel: true });
+    st.seq = { legs, i: 0, t: 0, u: 0, v, open };
+  }
+  function stopCycle() { if (st.seq) { st.seq = null; release(); } }
+  function strutSpeed() {                                             // average 0 -> top speed of a free strut opening, now
+    const keep = JSON.parse(JSON.stringify(st)), mo = P.motor;
+    P.motor = true; reset("latched"); const ts = P.tscale; P.tscale = 1;
+    scriptedPush(-5, 150, 0.1);
+    let t = 0, t0 = null, t1 = null;
+    for (let i = 0; i < 2000 && t1 === null; i++) { step(0.004); t += 0.004; if (t0 === null && st.lift > 0.5 && !st.hand) t0 = t;
+      if (t0 !== null && st.lift >= LIFT_TOP - 0.1) t1 = t; }
+    P.tscale = ts; P.motor = mo; Object.assign(st, keep);
+    return t0 !== null && t1 !== null && t1 > t0 ? (LIFT_TOP - 0.5) / (t1 - t0) : 185;
+  }
   function reset(where) {
-    Object.assign(st, { v: 0, hand: false, vh: 0, fHand: 0, vx: 0, vd: 0, fallFrom: null, blocked: false, script: null, events: [], clicks: 0, trail: [] });
+    Object.assign(st, { v: 0, hand: false, vh: 0, fHand: 0, vx: 0, vd: 0, fallFrom: null, blocked: false, script: null, seq: null, events: [], clicks: 0, trail: [] });
     st.lift = LIFT_TOP; st.x = -6.0; st.d = TR.pin_max; st.target = st.lift;
     const g0 = bounds(st.lift);                                       // open: the doors are past vertical, on the top edge
     Object.assign(st, { phi: g0.lo, w: 0, edge: "lo", lam: 0 }); st.door = tphi(T.door, st.phi);
@@ -287,7 +329,7 @@ const PHYS = (() => {
     }
     st.latch = latchState();
   }
-  return { init, step, reset, grab, drag, release, scriptedPush, setMotor, P, STRUT, DESIGN, st, LIFT_TOP, LIFT_BOTTOM, padSurface, strutForce,
+  return { init, step, reset, grab, drag, release, scriptedPush, cycle, stopCycle, strutSpeed, setMotor, P, STRUT, DESIGN, st, LIFT_TOP, LIFT_BOTTOM, padSurface, strutForce,
     pz, tab: (k, L) => tab(T[k], L), state: st, DOCK, guideAt, relOf, bounds, tphi: (k, ph) => tphi(T[k], ph) };
 })();
 if (typeof module !== "undefined") module.exports = PHYS;

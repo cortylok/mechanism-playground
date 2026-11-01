@@ -54,7 +54,14 @@ const mech = ["physics.js", "adapter.js"].map((f) => fs.readFileSync(path.join(_
   S.setMotor(true);
   S = fresh(); S.reset("open"); S.st.lift = 100; S.step(0.004);
   check("no pad contact at lift 100", !S.st.padA && !S.st.padB, `padA ${S.st.padA} padB ${S.st.padB}`);
-  const P = M.pose(), bad = Object.entries(P).filter(([, m]) => m.length !== 16 || m.some((v) => !Number.isFinite(v)));
+  // tap-to-cycle on the latch inset: tap = release + open to the top, tap again = close + latch
+  S = fresh(); M.inset.onTap(); run(S, 6.0);
+  check("inset tap opens the mechanism to the top", S.st.lift > S.LIFT_TOP - 0.5 && !S.st.seq, `lift ${S.st.lift.toFixed(1)} latch ${S.st.latch}`);
+  M.inset.onTap(); run(S, 8.0);
+  check("second inset tap closes and latches it", S.st.latch === "latched" && S.st.door < 0.5 && !S.st.seq, `lift ${S.st.lift.toFixed(2)} latch ${S.st.latch} doors ${S.st.door.toFixed(2)} deg`);
+  M.inset.onTap(); run(S, 0.3); const midTap = S.st.lift; M.inset.onTap(); run(S, 0.05);
+  check("a tap while it moves stops the cycle", !S.st.seq, `stopped at lift ${S.st.lift.toFixed(1)} (was ${midTap.toFixed(1)})`);
+  const P = M.pose(), bad =Object.entries(P).filter(([, m]) => m.length !== 16 || m.some((v) => !Number.isFinite(v)));
   check("pose() gives every moving part a finite 4x4", Object.keys(P).length > 100 && !bad.length, `${Object.keys(P).length} parts posed, ${bad.length} bad`);
   done();
 })();

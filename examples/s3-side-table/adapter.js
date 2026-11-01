@@ -20,7 +20,7 @@ const sim = {
   get tscale() { return PHYS.P.tscale; }, set tscale(v) { PHYS.P.tscale = v; },
   set onEvent(f) { onEvent = f; }, get onEvent() { return onEvent; },
   grabDof: { dof: 0 },
-  grab: () => PHYS.grab(), drag: (t, v) => PHYS.drag(t, v), release: () => PHYS.release(),
+  grab: () => { PHYS.stopCycle(); PHYS.grab(); }, drag: (t, v) => PHYS.drag(t, v), release: () => PHYS.release(),
   step: (dt) => {
     PHYS.step(dt);
     if (st.events.length !== nEv) { const e = st.events[st.events.length - 1]; nEv = st.events.length; if (e && onEvent) onEvent(e); }
@@ -114,9 +114,14 @@ return {
   hand: { groups: ["upper", "lower", "contents", "carriage", "strut", "cables", "latch"], axis: [0, 0, 1] },
   pageInit: async () => { await initPhysics(); await buildFace(); },
   pose: () => pose(),
-  inset: { title: "Latch path · seen from the pin", draw: drawLatch },
+  // tap the latch inset: open (release + rise), tap again: close + latch, at the strut's own average opening speed both
+  // ways; a tap while it moves stops it
+  inset: { draw: drawLatch, label: "Open or close the mechanism",
+    title: () => (st.seq ? (st.seq.open ? "Opening" : "Closing") + " · tap to stop" : "Latch path · tap to " + (st.lift < PHYS.LIFT_TOP / 2 ? "open" : "close")),
+    running: () => !!st.seq,
+    onTap: () => { if (st.seq) { PHYS.stopCycle(); return; } PHYS.cycle(PHYS.strutSpeed()); } },
   resets: [{ label: "Reset: latched", where: "latched" }, { label: "Reset: open", where: "open" }],
-  buttons: [{ label: "Gas strut", press: () => { PHYS.release(); PHYS.setMotor(!PHYS.P.motor); }, active: () => PHYS.P.motor,
+  buttons: [{ label: "Gas strut", press: () => { PHYS.stopCycle(); PHYS.release(); PHYS.setMotor(!PHYS.P.motor); }, active: () => PHYS.P.motor,
     text: () => (PHYS.P.motor ? "Gas strut: on" : "Gas strut: off (positions hold)") }],
   settings: [["contents", "Contents (bat, knife, torch), kg", 0.05, 0], ["strut", "Strut force at full extension, N", 1, 0], ["prog", "Strut progression (F2/F1)", 0.01, 1],
     ["halves", "Printed upper + lower (ASA), kg", 0.05, 0], ["hardware", "Rail blocks, strut body, electrics, screws, kg", 0.01, 0], ["blockDrag", "Rail block drag, both, N", 0.1, 0],

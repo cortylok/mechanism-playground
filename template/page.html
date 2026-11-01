@@ -74,6 +74,9 @@ aside button { min-width: 0; overflow-wrap: anywhere; }
 .inset canvas { display: block; width: 196px; height: 230px; }
 .inset .lt { font: 11px var(--f-mono); color: var(--muted); }
 @media (max-width: 720px) { .inset { width: 150px; } .inset canvas { width: 136px; height: 160px; } }
+.inset.tap { pointer-events: auto; cursor: pointer; touch-action: manipulation; z-index: 4; }
+.inset.tap:hover, .inset.run { border-color: var(--accent); }
+.inset.tap:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .flash { position: absolute; top: 10px; right: 12px; pointer-events: none; font: 700 18px var(--f-display); letter-spacing: .04em;
   color: var(--accent); opacity: 0; transition: opacity .5s; }
 .flash.on { opacity: 1; transition: none; }
@@ -1299,7 +1302,17 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
         const b = document.createElement("button"); b.type = "button"; b.dataset.view = k; b.textContent = v.label || k;
         b.addEventListener("click", () => setView(k)); $("views").appendChild(b);
       }
-      if (M.inset) { $("inset").hidden = false; $("insetT").textContent = M.inset.title || ""; }
+      if (M.inset) {                                            // inset: optional tap action (inset.onTap), live title / running state
+        const ib = $("inset"), it = M.inset, title = () => (typeof it.title === "function" ? it.title(sim) : it.title || "");
+        ib.hidden = false; $("insetT").textContent = title();
+        if (it.onTap) {
+          ib.classList.add("tap"); ib.setAttribute("role", "button"); ib.tabIndex = 0; ib.setAttribute("aria-label", it.label || title());
+          const go = () => { ensureAudio(); endHold(); it.onTap(sim); shown = ""; ib.classList.toggle("run", !!(it.running && it.running(sim))); $("insetT").textContent = title(); };
+          ib.addEventListener("click", go);
+          ib.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+        }
+        setInterval(() => { const t = title(); if ($("insetT").textContent !== t) $("insetT").textContent = t; ib.classList.toggle("run", !!(it.running && it.running(sim))); }, 200);
+      }
       buildSettings(); setSpeed(SPEED0); buildCaps();
       themeScene(); resize(); setView(CFG.defaultView || "iso"); applyLook(); secUI(); show(); drawInset();
       dbReady.then(paintConnect);
