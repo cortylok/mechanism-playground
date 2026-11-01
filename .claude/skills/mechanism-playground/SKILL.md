@@ -44,7 +44,7 @@ DATA, CONFIG` and must `return` the mechanism:
 | `bounds(q, sim)` | `[{ lo, hi }]` moving stops (optional; else dof min/max) |
 | `update(sim, dt)` | per-substep state (valves, pneumatics, latches) (optional) |
 | `grab` | `{ dof, k, c, max }` hand spring (N/mm or N*mm/deg), damper, cap |
-| `hand` | `{ groups or parts, axis, pivot }`: which parts the hand grabs; drag direction (mm) or rotation axis + pivot (deg) |
+| `hand` | `{ groups or parts, axis, pivot }`: which parts the hand grabs; drag direction (mm) or rotation axis + pivot (deg). `auto: true` instead maps the drag through the grabbed part's own motion from `pose()` (any linkage, screw or gear ratio; core sims only) |
 | `pose(sim)` | `{ partId: 4x4 column-major }` for moving parts (use `MAT4`) |
 | `design`, `settings` | design values; `[[key, label, step, min]]` editable in the page (`sim.P[key]`) |
 | `resets`, `buttons` | `[{ label, where }]`; `[{ label, press(sim), active(sim), text(sim) }]` |
