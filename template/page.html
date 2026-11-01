@@ -153,6 +153,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
   .flash { top: 62px; }
   .hint { display: none; }
 }
+.fps { position: absolute; right: 12px; bottom: 34px; pointer-events: none; font: 12px var(--f-mono); color: var(--muted); background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; font-variant-numeric: tabular-nums; }
 </style>
 
 <div class="app">
@@ -161,6 +162,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     <div class="hud" id="hud" hidden><b id="hudBig"></b> &nbsp;<span id="hudState"></span>
       <div class="chips" id="chips"></div><div class="gauges" id="gauges" hidden></div></div>
     <div class="flash" id="flash"></div>
+    <div class="fps" id="fps" hidden></div>
     <div class="inset" id="inset" hidden><div class="lt" id="insetT"></div><canvas id="insetC"></canvas><div class="lt" id="insetS"></div></div>
     <div class="card" id="card" hidden role="dialog" aria-labelledby="cardt"></div>
     <div class="pill" id="pill" hidden role="dialog" aria-labelledby="pillt"><span class="pt" id="pillt"></span><span class="pc2" id="pilln"></span>
@@ -190,6 +192,10 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       <div class="views" id="views"></div>
       <h3>Look</h3>
       <div class="views" role="group" aria-label="Look"><button type="button" id="vOutline" aria-pressed="false">Outlines</button><button type="button" id="vShadow" aria-pressed="false">Shadows</button><button type="button" id="vEnv" aria-pressed="false">Bounce light</button></div>
+      <h3>Speed</h3>
+      <div class="views" role="group" aria-label="Resolution"><button type="button" data-res="auto" aria-pressed="true">Res: auto</button><button type="button" data-res="full" aria-pressed="false">Res: full</button><button type="button" data-res="low" aria-pressed="false">Res: low</button></div>
+      <div class="row2"><button type="button" id="vFps" aria-pressed="false">Frame time</button></div>
+      <p class="small">Res auto: lower resolution while you move, only when this device is slow. Full: always sharp. Low: 60 % always, the fastest. Frame time shows frames per second and the time to draw one frame.</p>
       <p class="small" id="lookS">Outlines: fine feature edges. Shadows: a fixed key light, parts shadow themselves and each other. Bounce light: soft light from all sides, as in a room.</p>
     </details>
     <details class="pan" data-k="paint">
@@ -299,7 +305,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     renderer.setPixelRatio(BASE_DPR);
     // performance (2026-11-01): on a slow device (frames over 22 ms while moving, 8 times) the view drops to 60 % resolution
     // while it moves and returns to full resolution 0.2 s after it stops. A fast GPU never switches (it would only blur).
-    const RES = { low: false, until: 0, auto: false, slow: 0, lastT: 0 };
+    const RES = { low: false, until: 0, auto: false, slow: 0, lastT: 0, mode: "auto" };
     // the picking tree re-orders a mesh's triangles (whole triangles, vertex order kept): map back to the packed order once
     function origTri(g, f) {
       if (f == null) return -1;
@@ -318,7 +324,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       const list = objs.map((o) => o.mesh.geometry).filter((g, i, a) => a.indexOf(g) === i && g.index && g.index.count > 6000).sort((a, b) => b.index.count - a.index.count);
       for (const g of list) { await new Promise((r) => setTimeout(r, 30)); try { g.computeBoundsTree(); } catch (_) {} }
     }
-    function poke() { RES.until = performance.now() + 200; if (RES.auto && !RES.low) { RES.low = true; renderer.setPixelRatio(BASE_DPR * 0.6); resize(); } }
+    function poke() { RES.until = performance.now() + 200; if (RES.mode === "auto" && RES.auto && !RES.low) { RES.low = true; renderer.setPixelRatio(BASE_DPR * 0.6); resize(); } }
     function resIdle(now) {
       if (now < RES.until && !RES.auto) {                            // while moving: count slow frames
         const d = now - RES.lastT;
@@ -326,7 +332,23 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
         if (RES.slow >= 8) RES.auto = true;
       }
       RES.lastT = now;
-      if (RES.low && now > RES.until) { RES.low = false; renderer.setPixelRatio(BASE_DPR); resize(); }
+      if (RES.mode === "auto" && RES.low && now > RES.until) { RES.low = false; renderer.setPixelRatio(BASE_DPR); resize(); }
+    }
+    const FPS = { on: false, n: 0, rn: 0, rsum: 0, t0: 0 };
+    function fpsTick(now, rms) {
+      if (!FPS.on) return;
+      FPS.n++; if (rms > 0) { FPS.rn++; FPS.rsum += rms; }
+      if (now - FPS.t0 >= 500) {
+        $("fps").textContent = `${Math.round(FPS.n * 1000 / (now - FPS.t0))} fps · draw ${FPS.rn ? (FPS.rsum / FPS.rn).toFixed(1) : "-"} ms · res ${RES.mode}${RES.mode === "auto" && RES.auto ? " (slow device)" : ""}`;
+        FPS.n = 0; FPS.rn = 0; FPS.rsum = 0; FPS.t0 = now;
+      }
+    }
+    function applyPerf() {
+      RES.mode = LOOK.res || "auto"; RES.low = false;
+      renderer.setPixelRatio(RES.mode === "low" ? BASE_DPR * 0.6 : BASE_DPR); resize();
+      FPS.on = !!LOOK.fps; $("fps").hidden = !FPS.on; FPS.t0 = performance.now(); FPS.n = FPS.rn = FPS.rsum = 0;
+      document.querySelectorAll("[data-res]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.res === RES.mode)));
+      $("vFps").setAttribute("aria-pressed", String(FPS.on));
     }
     // fast picking: bounding-volume trees on the meshes (click, wheel zoom, paint, marker)
     const BVH = window.MeshBVHLib;
@@ -348,7 +370,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;   // redrawn only when a part or a mode changes
     const shadowDirty = () => { renderer.shadowMap.needsUpdate = true; };
-    const LOOK = { outline: false, shadow: true, env: true };
+    const LOOK = { outline: false, shadow: true, env: true, res: "auto", fps: false };
     let envTex = null;
     // bounce light: image-based lighting from a small studio "room" (bright ceiling panel, two side panels, warm floor),
     // pre-filtered by three.js' PMREM generator - soft fill from every side, no extra library
@@ -376,6 +398,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       for (const m of new Set(objs.map((o) => o.mesh.material).concat(...Object.values(matsOf)))) m.needsUpdate = true;
       $("vOutline").setAttribute("aria-pressed", String(LOOK.outline)); $("vShadow").setAttribute("aria-pressed", String(LOOK.shadow));
       $("vEnv").setAttribute("aria-pressed", String(LOOK.env));
+      applyPerf();
       applyModes();
     }
     const gi = sim.grabDof.dof, unit = M.dofs[gi].unit || "mm";
@@ -1268,6 +1291,8 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       placeKey(c, bb.getBoundingSphere(new THREE.Sphere()).radius);
       Object.assign(LOOK, { shadow: !phone() }, CFG.look || {});        // shadows off by default on phones (speed)
       for (const [id, k] of [["vOutline", "outline"], ["vShadow", "shadow"], ["vEnv", "env"]]) $(id).addEventListener("click", () => { LOOK[k] = !LOOK[k]; applyLook(); });
+      document.querySelectorAll("[data-res]").forEach((b) => b.addEventListener("click", () => { LOOK.res = b.dataset.res; applyPerf(); }));
+      $("vFps").addEventListener("click", () => { LOOK.fps = !LOOK.fps; applyPerf(); });
       secRange = { front: [bb.min.y - SEC.C.y - 5, bb.max.y - SEC.C.y + 5], top: [bb.min.z - SEC.C.z - 5, bb.max.z - SEC.C.z + 5], right: [bb.min.x - SEC.C.x - 5, bb.max.x - SEC.C.x + 5] };
       VIEWS = Object.assign({ iso: { t: [c.x, c.y, c.z], r: modelSize * 2.6, th: -2.3, ph: 0.32, label: "Iso" } }, CFG.views || {});
       for (const [k, v] of Object.entries(VIEWS)) {
@@ -1289,7 +1314,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
           for (const [id, pm] of Object.entries(s.parts || {})) { const o = byId[id]; if (o) { ownMat(o); o.pm = pm; } }
           Object.assign(SEC, s.sec || {});
           if (s.mark) { MARK.colour = s.mark.colour || MARK.colour; MARK.top = !!s.mark.top; }
-          if (s.look) { for (const k of ["outline", "shadow", "env"]) if (k in s.look) LOOK[k] = !!s.look[k]; applyLook(); }
+          if (s.look) { for (const k of ["outline", "shadow", "env"]) if (k in s.look) LOOK[k] = !!s.look[k]; if (s.look.res) LOOK.res = s.look.res; LOOK.fps = !!s.look.fps; applyLook(); }
           document.querySelectorAll("[data-mc]").forEach((q) => q.setAttribute("aria-pressed", String(q.dataset.mc === MARK.colour)));
           document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", "false"));
           applyModes(); secUI(); syncTop();
@@ -1319,7 +1344,9 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
           } catch (err) { stopped = true; fail("The simulation stopped: " + (err && err.message || err) + "\nUse a Reset button to start again."); }
         }
         resIdle(now);
-        if (dirty) { dirty = false; placeCamera(); syncEdges(); renderer.render(scene, camera); }
+        let rms = 0;
+        if (dirty) { const r0 = performance.now(); dirty = false; placeCamera(); syncEdges(); renderer.render(scene, camera); rms = performance.now() - r0; }
+        fpsTick(now, rms);
         requestAnimationFrame(frame);
       };
       // a reset after an error starts the loop again

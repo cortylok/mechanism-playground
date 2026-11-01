@@ -11,10 +11,10 @@
   "views": {
     "iso": { "label": "Iso", "t": [62, -80, -230], "r": 1250, "th": -2.3, "ph": 0.32 },
     "side": { "label": "−X side", "t": [0, -80, -180], "r": 900, "th": 3.14159, "ph": 0.12 },
-    "latch": { "label": "Latch", "t": [29, -3, -412], "r": 120, "th": 1.0208, "ph": 0.35, "modes": { "walls": "off", "enclosure": "xray", "top": "xray", "bracket": "xray", "latch": "solid" } },
+    "latch": { "label": "Latch", "t": [29, -3, -412], "r": 120, "th": 1.0208, "ph": 0.35, "modes": { "enclosure": "xray", "top": "xray", "bracket": "xray", "latch": "solid" } },
     "dock": { "label": "Dock", "t": [25, -165, -235], "r": 220, "th": -1.1708, "ph": 0.15 },
-    "cables": { "label": "Cables", "t": [55, -120, -300], "r": 620, "th": -2.5, "ph": 0.25, "modes": { "walls": "off", "enclosure": "xray", "top": "xray", "upper": "xray", "lower": "xray", "linkage": "xray", "contents": "xray", "cables": "solid" } },
-    "bay": { "label": "Wiring bay", "t": [32, -118, -235], "r": 330, "th": -2.35, "ph": 0.28, "modes": { "walls": "off", "enclosure": "off", "top": "off", "upper": "xray", "lower": "xray", "linkage": "xray", "contents": "xray", "cables": "solid", "hardware": "solid", "strut": "xray", "dock": "xray", "latch": "xray", "bracket": "off", "carriage": "xray" } }
+    "cables": { "label": "Cables", "t": [55, -120, -300], "r": 620, "th": -2.5, "ph": 0.25, "modes": { "enclosure": "xray", "top": "xray", "upper": "xray", "lower": "xray", "linkage": "xray", "contents": "xray", "cables": "solid" } },
+    "bay": { "label": "Wiring bay", "t": [32, -118, -235], "r": 330, "th": -2.35, "ph": 0.28, "modes": { "enclosure": "off", "top": "off", "upper": "xray", "lower": "xray", "linkage": "xray", "contents": "xray", "cables": "solid", "hardware": "solid", "strut": "xray", "dock": "xray", "latch": "xray", "bracket": "off", "carriage": "xray" } }
   },
   "hint": "Tap a part for its specs · grab the carriage and push or pull · two fingers or right-drag: rotate · pinch or wheel: zoom to the pointer"
 }

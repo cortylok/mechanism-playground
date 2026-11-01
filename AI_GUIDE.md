@@ -266,6 +266,13 @@ ringing (count velocity reversals after a contact).
 - Shell heredocs with apostrophes break in some Windows shells: write files with a file tool.
 - A bundle on another site needs CORS (GitHub Pages and raw.githubusercontent.com allow it).
 - Projects run in a sandboxed iframe in the player: no localStorage there (the page copes).
+- Performance: physics is usually < 1 ms per frame; drawing dominates. The page keeps meshes indexed, redraws the
+  shadow map only when something changes, picks through three-mesh-bvh trees (loaded from unpkg - jsdelivr serves it
+  with a type the browser refuses), and lowers the resolution while moving only on a slow device (View > Speed:
+  Res auto / full / low, Frame time readout). Measure with `__play.bench()` (ms per orbit frame) and `__play.pick()`
+  (ms per pick) on the real clock - headless virtual time reads 0 ms. Mesh decimation is NOT automatic:
+  `build/display_decimate.py` keeps a lighter copy only when its deviation check passes (fast-simplification is not
+  repeatable on fine meshes).
 
 ## 9. Sharing a model
 
