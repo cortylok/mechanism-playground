@@ -6,3 +6,4 @@ pillow
 shapely
 manifold3d
 mapbox-earcut
+rtree
