@@ -266,7 +266,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     if (!window.THREE) throw new Error("The 3D library did not load. Check the internet connection and reload.");
     const D = B.data, CFG = B.config || {};
     const M = window.BUNDLE.makeMech(B);
-    const sim = window.CORE.create(M);
+    const sim = M.createSim ? M.createSim() : window.CORE.create(M);   // a mechanism may bring its own engine
     const slug = (B.name || "project").toLowerCase().replace(/[^a-z0-9_]+/g, "_");
     document.title = B.title || B.name; $("title").textContent = B.title || B.name;
     if (CFG.description) $("desc").textContent = CFG.description;
@@ -294,12 +294,13 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     // ---------------------------------------------------------------- groups + materials
     const PALETTE = [0xa9bccc, 0xc9ccc8, 0xb08d57, 0x5c6670, 0x8fa3b5, 0x5f86ad, 0x4f8a5b, 0x3d4247, 0x7d858c, 0xc8a46e, 0xd0452f, 0xc2a54a];
     const hex = (c, i) => (typeof c === "string" ? parseInt(c.replace("#", ""), 16) : c != null ? c : PALETTE[i % PALETTE.length]);
-    const GROUPS = (D.groups || []).map((g, i) => [g.key, g.label || g.key, hex(g.colour, i), g.mode || "solid"]);
+    const GROUPS = (D.groups || []).map((g, i) => [g.key, g.label || g.key, hex(g.colour, i), g.mode || "solid", g.opacity]);
     for (const p of D.parts) if (!GROUPS.some((g) => g[0] === p.group)) GROUPS.push([p.group, p.group, PALETTE[GROUPS.length % PALETTE.length], "solid"]);
     const mode = {}, MAT = {};
-    for (const [g, , col, m] of GROUPS) {
+    for (const [g, , col, m, op] of GROUPS) {
       mode[g] = m;
       MAT[g] = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, metalness: 0.05, flatShading: true });
+      if (op != null) MAT[g].userData.opac = op;                 // the group's see-through opacity (default 0.3)
     }
     // ---------------------------------------------------------------- section view: one global cut plane, hatched caps per
     // group by the stencil method (back faces +1, front faces -1, cap where the count is not 0)

@@ -65,7 +65,8 @@ def bundle(project):
         fail(f"{data_path} not found")
     cfg_path = os.path.join(project, P.get("config", "config.json"))
     config = json.load(open(cfg_path, encoding="utf-8")) if os.path.exists(cfg_path) else {}
-    mech = read(os.path.join(project, P.get("mech", "mechanism.js")))
+    files = P.get("mech", "mechanism.js")                           # one file, or a list joined in order
+    mech = "\n".join(read(os.path.join(project, f)) for f in ([files] if isinstance(files, str) else files))
     data = json.load(open(data_path, encoding="utf-8"))
     for k, v in (P.get("extra") or {}).items():                      # extra data files merged into data (e.g. maps)
         data[k] = json.load(open(os.path.join(project, v), encoding="utf-8"))

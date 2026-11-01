@@ -1,0 +1,13 @@
+S3 side table example - Copyright (c) 2026 cortylok
+
+The files in this folder (examples/s3-side-table/: the packed meshes and data in data/, physics.js, adapter.js,
+config.json, test.js, README.md) are licensed under the Creative Commons Attribution-NonCommercial 4.0 International
+licence (CC BY-NC 4.0).
+
+You may share and adapt them for non-commercial purposes, with credit to cortylok and a link to the licence. You may
+not use them, or the side-table design they describe, for commercial purposes.
+
+Licence text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+Summary:      https://creativecommons.org/licenses/by-nc/4.0/
+
+The rest of the repository (the playground framework) is MIT-licensed: see LICENSE at the repository root.

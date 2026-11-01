@@ -53,7 +53,8 @@
     const f = new Function(...NAMES, "DATA", "CONFIG", "\"use strict\";\n" + B.mech);
     const M = f(...libs(), B.data, B.config || {});
     if (!M || !Array.isArray(M.dofs) || !M.dofs.length) throw new Error("mechanism.js must return an object with a dofs array");
-    if (typeof M.mass !== "function" || typeof M.forces !== "function") throw new Error("mechanism.js must return mass() and forces() functions");
+    if (!M.createSim && (typeof M.mass !== "function" || typeof M.forces !== "function"))
+      throw new Error("mechanism.js must return mass() and forces() functions (or createSim() for its own engine)");
     return M;
   }
   const BUNDLE = { inflate, decodeMesh, decodeMap, check, makeMech, FORMAT };

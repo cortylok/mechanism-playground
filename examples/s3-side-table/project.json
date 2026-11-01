@@ -1,0 +1,1 @@
+{ "name": "s3-side-table", "title": "S3 side table", "mech": ["physics.js", "adapter.js"], "config": "config.json", "data": "data/data.json" }

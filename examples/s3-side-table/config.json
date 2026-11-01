@@ -1,0 +1,20 @@
+{
+  "description": "A lift-up side table: push the handle down to release the push-push latch; the gas strut lifts the carriage and the doors open. Push it back down to close and latch. Everything moves by its forces: your hand, the strut, the weights, friction, the latch cam and the dock pins. The door linkage follows the CAD mates.",
+  "notes": [
+    "How it moves. Below lift 0 only the carriage moves (latch overtravel): the carrier stands on its slot floor. From 0 to 29.1 the carrier rises with the carriage; then it stops and the doors swing open, done by lift 76. Pad A (torch charging) touches the dock pins when latched; pad B (LED strip) at lift 200.",
+    "Strut: GS535-type gas strut, 100 N, lower ball stud on an upright bracket; fully extended at lift 200, so it is the open stop.",
+    "Cables: a USB module and two bridge rectifiers sit in an electronics bay in the underside of the upper. Pad B wires run in a bore up the rail upright; pad A wires rise through two curved holes.",
+    "This example is a snapshot of a real design project (side table S3, 2026-10-31). Its files are CC BY-NC 4.0: see LICENSE in this folder."
+  ],
+  "speed0": 0.5,
+  "sectionCentre": [62, -80, -230],
+  "views": {
+    "iso": { "label": "Iso", "t": [62, -80, -230], "r": 1250, "th": -2.3, "ph": 0.32 },
+    "side": { "label": "−X side", "t": [0, -80, -180], "r": 900, "th": 3.14159, "ph": 0.12 },
+    "latch": { "label": "Latch", "t": [29, -3, -412], "r": 120, "th": 1.0208, "ph": 0.35, "modes": { "walls": "off", "enclosure": "xray", "top": "xray", "bracket": "xray", "latch": "solid" } },
+    "dock": { "label": "Dock", "t": [25, -165, -235], "r": 220, "th": -1.1708, "ph": 0.15 },
+    "cables": { "label": "Cables", "t": [55, -120, -300], "r": 620, "th": -2.5, "ph": 0.25, "modes": { "walls": "off", "enclosure": "xray", "top": "xray", "upper": "xray", "lower": "xray", "linkage": "xray", "contents": "xray", "cables": "solid" } },
+    "bay": { "label": "Wiring bay", "t": [32, -118, -235], "r": 330, "th": -2.35, "ph": 0.28, "modes": { "walls": "off", "enclosure": "off", "top": "off", "upper": "xray", "lower": "xray", "linkage": "xray", "contents": "xray", "cables": "solid", "hardware": "solid", "strut": "xray", "dock": "xray", "latch": "xray", "bracket": "off", "carriage": "xray" } }
+  },
+  "hint": "Tap a part for its specs · grab the carriage and push or pull · two fingers or right-drag: rotate · pinch or wheel: zoom to the pointer"
+}
