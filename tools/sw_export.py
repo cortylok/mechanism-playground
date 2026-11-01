@@ -35,10 +35,20 @@ def com():
     return sw, pythoncom, wc
 
 
+def M(o, name, *a):
+    """Call a COM method. pywin32 late binding exposes some no-argument methods as properties, so o.Name() would call
+    the returned object instead (error "Member not found"); _FlagAsMethod makes the call explicit."""
+    try:
+        o._FlagAsMethod(name)
+    except AttributeError:
+        pass
+    return getattr(o, name)(*a)
+
+
 def leaves(c, out, path=""):
-    if c.IsSuppressed():
+    if M(c, "IsSuppressed"):
         return
-    kids = c.GetChildren() or ()
+    kids = M(c, "GetChildren") or ()
     if kids:
         for k in kids:
             leaves(k, out, path + c.Name2 + "/")
@@ -49,9 +59,9 @@ def leaves(c, out, path=""):
 def bodies_of(c, pythoncom, wc):
     try:
         info = wc.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_VARIANT, None)
-        res = c.GetBodies3(0, info)                               # 0 = solid bodies
+        res = M(c, "GetBodies3", 0, info)                               # 0 = solid bodies
     except Exception:                                             # noqa: BLE001
-        res = c.GetBodies2(0)
+        res = M(c, "GetBodies2", 0)
     if isinstance(res, tuple) and res and isinstance(res[0], (tuple, list)):
         res = res[0]
     return res or ()
@@ -66,14 +76,14 @@ def tess(c, pythoncom, wc):
     R, t, s = transform(c)
     tris = []
     for b in bodies_of(c, pythoncom, wc):
-        for f in b.GetFaces() or ():
-            tt = f.GetTessTriangles(True)
+        for f in M(b, "GetFaces") or ():
+            tt = M(f, "GetTessTriangles", True)
             if tt:
                 tris.append(np.array(tt, float).reshape(-1, 3))
     if not tris:
         return None
     p = np.vstack(tris)
-    box = np.array(c.GetBox(False, False) or [0] * 6, float) * 1000
+    box = np.array(M(c, "GetBox", False, False) or [0] * 6, float) * 1000
     cand = {"raw": p * 1000, "xf": (p @ R * s + t) * 1000}
     err = {k: np.abs(np.r_[v.min(0), v.max(0)] - box).max() for k, v in cand.items()}
     return cand[min(err, key=err.get)].reshape(-1, 3, 3)
@@ -90,17 +100,17 @@ def write_stl(path, tris):
 
 
 def mass(c, R, t):
-    doc = c.GetModelDoc2()
+    doc = M(c, "GetModelDoc2")
     if doc is None:
         return {}
-    mp = doc.Extension.CreateMassProperty()
+    mp = M(doc.Extension, "CreateMassProperty")
     if mp is None:
         return {}
     m = float(mp.Mass)
     if m <= 0:
         return {}
     cm = np.array(mp.CenterOfMass, float) * 1000                   # part frame, mm
-    I = np.array(mp.GetMomentOfInertia(0), float).reshape(3, 3) * 1e6   # about the com, part axes, kg*mm^2
+    I = np.array(M(mp, "GetMomentOfInertia", 0), float).reshape(3, 3) * 1e6   # about the com, part axes, kg*mm^2
     # SolidWorks transforms act on row vectors (p @ R + t, as the tessellation above): the inertia turns as R^T I R
     return dict(mass=round(m, 6), com=np.round(cm @ R + t * 1000, 4).tolist(), inertia=np.round(R.T @ I @ R, 6).tolist())
 
@@ -114,17 +124,17 @@ def main():
     a = ap.parse_args()
     sw, pythoncom, wc = com()
     doc = sw.ActiveDoc
-    if doc is None or doc.GetType() != 2:                           # swDocASSEMBLY
+    if doc is None or M(doc, "GetType") != 2:                           # swDocASSEMBLY
         sys.exit("sw_export.py: make an assembly the active document")
-    before = doc.GetActiveConfiguration().Name
+    before = M(doc, "GetActiveConfiguration").Name
     if a.config:
-        doc.ShowConfiguration2(a.config)
-        if doc.GetActiveConfiguration().Name != a.config:
+        M(doc, "ShowConfiguration2", a.config)
+        if M(doc, "GetActiveConfiguration").Name != a.config:
             sys.exit(f"sw_export.py: configuration '{a.config}' not found")
-        doc.EditRebuild3()
+        M(doc, "EditRebuild3")
     os.makedirs(os.path.join(a.out, "meshes"), exist_ok=True)
     comps = []
-    for c in doc.GetComponents(True) or ():
+    for c in M(doc, "GetComponents", True) or ():
         leaves(c, comps)
     parts, used = [], set()
     for name, c in comps:
@@ -149,8 +159,8 @@ def main():
         parts.append(p)
         print(f"  {name}: {len(tris)} tris" + (f", {p['mass']} kg" if "mass" in p else ""))
     if a.config and before != a.config:
-        doc.ShowConfiguration2(before)
-    title = os.path.splitext(os.path.basename(doc.GetPathName() or "assembly"))[0]
+        M(doc, "ShowConfiguration2", before)
+    title = os.path.splitext(os.path.basename(M(doc, "GetPathName") or "assembly"))[0]
     json.dump(dict(name=re.sub(r"[^a-z0-9-]+", "-", title.lower()).strip("-") or "project", parts=parts),
               open(os.path.join(a.out, "parts.json"), "w", encoding="utf-8"), indent=1)
     print(f"{len(parts)} parts -> {a.out} (assembly not saved)")
