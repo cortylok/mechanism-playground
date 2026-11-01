@@ -74,6 +74,14 @@ DATA, CONFIG` and must `return` the mechanism:
 - Contact velocity from a map projection must be capped by the real slope and low-passed (~1 ms), or grid steps fling
   parts at m/s. Always keep the follower's own position as a candidate.
 - Light spring plungers: small mass so drops take ~1 ms; fast pushes can skip a landing (a real effect).
+- Contacts with test objects need damping (a damping ratio on the contact's own stiffness and the moving mass; push
+  only, never pull), and motors need a torque-speed curve (stall torque falling to zero at the no-load speed). A plain
+  spring hit by a motor with no speed limit rings like rubber: the gripper example saw 83 reversals and a 26x force
+  peak before this fix, 0 reversals after.
+- Fine-pitch screws reflect the screw's spin as a large mass at the slider (the gripper: ~10 kg from a 114 g screw at
+  3 mm lead). It is real; build the mass table from poses that include the screw's rotation.
+- A disc's axis is its SMALLEST principal direction (a PCA "longest axis" lies in its face). Check gear and wheel
+  axes against their bounding box before posing them.
 
 ## Traps (each cost real time)
 - three.js poses: the page sets `matrixAutoUpdate = false` on every part; send full matrices from `pose()`.
