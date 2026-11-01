@@ -164,6 +164,28 @@ GitHub Actions runs the node tests and the headless page check on every push.
 3. Create `cortylok/mechanism-playground` as public and push (corty approved public from the first push).
 4. Turn on GitHub Pages from `docs/`.
 
+## 10a. Project loader (added by corty 2026-11-01)
+
+The playground can load different projects. A project can be on the user's computer, in its own repo, or on any server.
+
+- **Bundle:** `build.py` also writes `dist/<name>.playground.json`, one file with everything a project needs:
+  `{ format: "mechanism-playground/1", name, title, config, data, mech (mechanism.js source), modules: [...] }`.
+  Meshes stay packed inside `data` (as in `data.json`).
+- **Player page:** `player.html` (on GitHub Pages, also works as a local file) holds the template, the core and
+  every module. It loads a bundle from:
+  - a URL: `player.html?project=<url>` or a URL box. Any server that allows CORS works: GitHub Pages,
+    `raw.githubusercontent.com`, a release asset, a private server.
+  - a local file: file picker or drag and drop of a `.playground.json`.
+  - the project list: `projects.json` in the repo (the built-in examples plus community entries added by pull
+    request).
+  - the recent list: the last 10 loaded sources, kept in the browser's localStorage.
+- **Trust:** a bundle carries JavaScript (`mech`). Before it runs a bundle from a source that is not built-in, the
+  player shows the source and asks the user to confirm. Each confirmed source is remembered. The page holds no
+  secrets. The warning tells users to load only projects they trust.
+- **Version check:** the player refuses a bundle with an unknown `format` major version and names the problem.
+- **Standalone pages stay:** `dist/<name>.html` is still built for email and phones (one file, no loading).
+- **Marker and paint** use a per-project key (`project name`) in the artifact db and localStorage.
+
 ## 11. Out of scope for v1
 
 - STEP import.

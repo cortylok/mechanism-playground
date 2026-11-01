@@ -288,6 +288,28 @@ Tests: `headless.py` on each built example; `holes.py` on a generated plate with
 
 - [ ] Implement, run the checks, commit "Tools".
 
+### Task 13a: Project loader (spec section 10a, added by corty 2026-11-01)
+
+**Files:** `build/build.py` (also writes `dist/<name>.playground.json`), `template/page.html` (loader hooks),
+`build/build_player.py` -> `dist/player.html`, `projects.json`, `tests/loader.test.js`.
+
+- The template gets one boot path: `boot(bundle)`. Standalone pages call it with the inlined bundle; the player calls
+  it after loading. Re-loading tears down the scene, the sim and the panels before the next boot.
+- Player sources: `?project=<url>`, URL box, file picker, drag and drop, `projects.json` list, recent list
+  (localStorage `mpg.recent`, 10 entries). Relative URLs resolve against the player's location.
+- Trust: built-in = listed in `projects.json` with `"builtin": true`. Any other source -> a confirm panel (source
+  text, warning) before `mech` runs; confirmed sources saved in `mpg.trusted`.
+- `mech` runs through `new Function("CORE", "SPRINGS", "PNEUMATICS", "LINKAGE2D", "CONTACT", src)` and must return the
+  mechanism object (the standalone page uses the same wrapper).
+- Format check: `format` must start with `mechanism-playground/1`, else an error panel names the found value.
+
+Tests (`tests/loader.test.js`, node): `loadBundle()` (pure function in `physics/bundle.js`) accepts each built example
+bundle, rejects a wrong format with a clear message, rejects a bundle whose `mech` does not return `dofs`; each
+example's mechanism from its bundle steps 1 s without errors. Page check: `tools/headless.py` on
+`dist/player.html?project=starter.playground.json` served by `py -m http.server`.
+
+- [ ] Tests first (FAIL), implement, PASS, headless check. Commit "Project loader".
+
 ### Task 14: Claude Code skill
 
 **Files:** `.claude/skills/mechanism-playground/SKILL.md`.
