@@ -268,7 +268,7 @@ ringing (count velocity reversals after a contact).
 - Projects run in a sandboxed iframe in the player: no localStorage there (the page copes).
 - Performance: physics is usually < 1 ms per frame; drawing dominates. The page keeps meshes indexed, redraws the
   shadow map only when something changes, picks through three-mesh-bvh trees (loaded from unpkg - jsdelivr serves it
-  with a type the browser refuses), and lowers the resolution while moving only on a slow device (View > Speed:
+  with a type the browser refuses), and lowers the resolution while moving only on a slow device (View > Performance:
   Res auto / full / low, Frame time readout). Measure with `__play.bench()` (ms per orbit frame) and `__play.pick()`
   (ms per pick) on the real clock - headless virtual time reads 0 ms. Mesh decimation is NOT automatic:
   `build/display_decimate.py` keeps a lighter copy only when its deviation check passes (fast-simplification is not
