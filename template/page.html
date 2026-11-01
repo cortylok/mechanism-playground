@@ -444,12 +444,23 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       return hit && grabbable(hit.object.userData.o) ? hit : null;
     }
     // screen px per unit of the grabbed DOF at the grabbed point: a 1 mm step along the hand axis, or a 1 deg turn about it
-    function pxPerUnit(point) {
-      const p1 = point.clone();
-      if (unit === "deg") {
+    // hand.auto: the grabbed point's own motion per unit of the DOF, from two poses (any linkage, gear or screw ratio)
+    function autoStep(point, o) {
+      if (!H.auto || !M.pose || !Array.isArray(sim.q)) return null;
+      const q0 = sim.q[gi], d = 1e-3, A = M.pose(sim)[o.p.id];
+      sim.q[gi] = q0 + d; const Bm = M.pose(sim)[o.p.id]; sim.q[gi] = q0;
+      if (!A || !Bm) return null;
+      const local = point.clone().applyMatrix4(new THREE.Matrix4().fromArray(A).invert());
+      const moved = local.applyMatrix4(new THREE.Matrix4().fromArray(Bm));
+      return point.clone().add(moved.sub(point).divideScalar(d));
+    }
+    function pxPerUnit(point, o) {
+      let p1 = o ? autoStep(point, o) : null;
+      if (p1) { /* auto */ } else if (unit === "deg") {
+        p1 = point.clone();
         const piv = new THREE.Vector3(...val(H.pivot || [0, 0, 0])), ax = new THREE.Vector3(...val(H.axis || [0, 0, 1])).normalize();
         p1.sub(piv).applyAxisAngle(ax, Math.PI / 180).add(piv);
-      } else p1.add(new THREE.Vector3(...val(H.axis || [0, 0, 1])).normalize());
+      } else p1 = point.clone().add(new THREE.Vector3(...val(H.axis || [0, 0, 1])).normalize());
       const a = point.clone().project(camera), b = p1.project(camera), r = el.getBoundingClientRect();
       const dx = (b.x - a.x) * r.width / 2, dy = -(b.y - a.y) * r.height / 2, n = Math.hypot(dx, dy);
       return n < 0.05 ? { ux: 0, uy: -1, n: 0.05 } : { ux: dx / n, uy: dy / n, n };
@@ -457,7 +468,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     function startHold(cx, cy) {
       const hit = pickGrab(cx, cy);
       if (!hit) return false;
-      hold = { x0: cx, y0: cy, q0: sim.q[gi], target: sim.q[gi], vh: 0, tLast: performance.now(), ...pxPerUnit(hit.point) };
+      hold = { x0: cx, y0: cy, q0: sim.q[gi], target: sim.q[gi], vh: 0, tLast: performance.now(), ...pxPerUnit(hit.point, hit.object.userData.o) };
       sim.grab(); ensureAudio(); return true;
     }
     function moveHold(cx, cy) {
