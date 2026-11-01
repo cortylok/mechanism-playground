@@ -106,12 +106,17 @@ def build_player():
     origin: it cannot read the player's storage or its trusted-source list."""
     inner = standalone(page("Mechanism playground", "null"))
     shell = read(os.path.join(ROOT, "template", "player.html"))
-    if "/*__PAGE__*/null" not in shell:
-        fail("template/player.html is missing /*__PAGE__*/null")
-    html = shell.replace("/*__PAGE__*/null", json.dumps(inner).replace("</", "<\\/"))
+    for k in ("/*__PAGE__*/null", "/*__BUNDLEJS__*/"):
+        if k not in shell:
+            fail(f"template/player.html is missing {k}")
+    html = (shell.replace("/*__BUNDLEJS__*/", read(os.path.join(ROOT, "physics", "bundle.js")))
+            .replace("/*__PAGE__*/null", json.dumps(inner).replace("</", "<\\/")))
     os.makedirs(DIST, exist_ok=True)
     out = os.path.join(DIST, "player.html")
     open(out, "w", encoding="utf-8").write(html)
+    lst = os.path.join(ROOT, "projects.json")
+    if os.path.exists(lst):
+        open(os.path.join(DIST, "projects.json"), "w", encoding="utf-8").write(read(lst))
     print(f"player: {len(html) / 1e6:.2f} MB -> {os.path.relpath(out, ROOT)}")
     return out
 

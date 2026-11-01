@@ -69,8 +69,13 @@ def main():
         bad = [ln for ln in console if re.search(r"Uncaught|TypeError|ReferenceError|SyntaxError", ln)]
         err = re.search(r'<div class="err" id="err"( hidden="")?>(.*?)</div>', dom, re.S)
         loading = re.search(r'<div class="loading" id="loading"( hidden="")?>', dom)
+        state = re.search(r'id="status" data-state="(\w+)"', dom)
         if not dom.strip():
             fails.append("no DOM came back")
+        elif "player-shell" in dom and "project=" in url:              # the player: the sandboxed page must report "loaded"
+            if not state or state.group(1) != "loaded":
+                msg = re.search(r'<div class="err" id="err"( hidden="")?>(.*?)</div>', dom, re.S)
+                fails.append(f"player state {state and state.group(1)}" + (f": {re.sub(r'<[^>]+>', '', msg.group(2)).strip()[:300]}" if msg and not msg.group(1) else ""))
         elif err and not err.group(1):
             fails.append("the page shows an error: " + re.sub(r"<[^>]+>", "", err.group(2)).strip()[:300])
         elif loading and not loading.group(1) and "player-shell" not in dom:

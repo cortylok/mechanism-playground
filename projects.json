@@ -1,0 +1,11 @@
+{
+  "note": "Projects listed in the player. Built-in examples have builtin: true. To list your own project, open a pull request that adds an entry with an absolute https URL to your .playground.json (GitHub Pages or raw.githubusercontent.com work), a title, a one-line description and your GitHub name as author. Listed community projects still ask the viewer to confirm before they run.",
+  "projects": [
+    { "name": "starter", "title": "Lid on a gas strut", "url": "starter.playground.json", "builtin": true,
+      "description": "Starter example: a 3 kg lid, one gas strut, hinge friction. Lift it past the balance angle." },
+    { "name": "pneumatic-slide", "title": "Pneumatic slide", "url": "pneumatic-slide.playground.json", "builtin": true,
+      "description": "A 32 x 100 cylinder drives a sled: valve, flow controls, cushions, chamber pressures." },
+    { "name": "s3-side-table", "title": "S3 side table", "url": "s3-side-table.playground.json", "builtin": true,
+      "description": "Showcase: a lift-up side table with a gas strut, push-push latch, door linkage and power dock (300 parts, 7 MB)." }
+  ]
+}
