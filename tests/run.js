@@ -8,9 +8,13 @@ if (fs.existsSync(ex)) for (const d of fs.readdirSync(ex).sort()) {
   const t = path.join(ex, d, "test.js");
   if (fs.existsSync(t)) files.push(t);
 }
+const pyDir = path.join(__dirname, "py");
+const PY = process.platform === "win32" ? ["py", ["-3"]] : ["python3", []];
+const pyFiles = fs.existsSync(pyDir) ? fs.readdirSync(pyDir).filter((f) => f.endsWith(".py")).sort().map((f) => path.join(pyDir, f)) : [];
+for (const f of pyFiles) files.push(f);
 let failed = 0;
 for (const f of files) {
-  const r = spawnSync(process.execPath, [f], { encoding: "utf8" });
+  const r = f.endsWith(".py") ? spawnSync(PY[0], [...PY[1], f], { encoding: "utf8" }) : spawnSync(process.execPath, [f], { encoding: "utf8" });
   const ok = r.status === 0;
   if (!ok) failed++;
   console.log(`${ok ? "PASS" : "FAIL"}  ${path.relative(root, f)}`);
