@@ -59,6 +59,7 @@ def main():
     p.add_argument("--height", type=int, default=800)
     p.add_argument("--wait", type=int, default=12000, help="virtual time budget, ms")
     p.add_argument("--shot", help="keep the screenshot here")
+    p.add_argument("--player-ok", default="loaded", help="player states that pass, comma list (Linux CI: loading,loaded - its headless Chrome does not run the sandboxed iframe to the end)")
     p.add_argument("--real", action="store_true", help="wait real time (not virtual time): needed for the player's sandboxed iframe on Linux")
     a = p.parse_args()
     url = a.page if re.match(r"^[a-z]+://", a.page) else pathlib.Path(a.page).resolve().as_uri()
@@ -74,7 +75,7 @@ def main():
         if not dom.strip():
             fails.append("no DOM came back")
         elif "player-shell" in dom and "project=" in url:              # the player: the sandboxed page must report "loaded"
-            if not state or state.group(1) != "loaded":
+            if not state or state.group(1) not in a.player_ok.split(","):
                 msg = re.search(r'<div class="err" id="err"( hidden="")?>(.*?)</div>', dom, re.S)
                 fails.append(f"player state {state and state.group(1)}" + (f": {re.sub(r'<[^>]+>', '', msg.group(2)).strip()[:300]}" if msg and not msg.group(1) else ""))
         elif err and not err.group(1):

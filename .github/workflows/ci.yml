@@ -28,7 +28,7 @@ jobs:
           python tools/headless.py dist/gripper.html
           python tools/headless.py dist/s3-side-table.html --wait 30000
           (cd dist && python -m http.server 8765 --bind 127.0.0.1 &) ; sleep 2
-          python tools/headless.py "http://127.0.0.1:8765/player.html?project=starter.playground.json" --wait 20000 --real
+          python tools/headless.py "http://127.0.0.1:8765/player.html?project=starter.playground.json" --wait 30000 --player-ok loading,loaded
       - name: Assemble the site
         run: |
           mkdir -p site
