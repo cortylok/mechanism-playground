@@ -34,9 +34,9 @@ def chrome():
     sys.exit("headless.py: Chrome not found (set CHROME=path)")
 
 
-def run(url, extra, wait, w, h, user_dir):
+def run(url, extra, wait, w, h, user_dir, real=False):
     cmd = [chrome(), "--headless=new", "--no-sandbox", "--hide-scrollbars", "--use-angle=swiftshader", "--enable-unsafe-swiftshader",
-           "--enable-logging=stderr", "--v=0", f"--window-size={w},{h}", f"--virtual-time-budget={wait}",
+           "--enable-logging=stderr", "--v=0", f"--window-size={w},{h}", (f"--timeout={wait}" if real else f"--virtual-time-budget={wait}"),
            f"--user-data-dir={user_dir}", "--allow-file-access-from-files", *extra, url]
     return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180)
 
@@ -59,11 +59,12 @@ def main():
     p.add_argument("--height", type=int, default=800)
     p.add_argument("--wait", type=int, default=12000, help="virtual time budget, ms")
     p.add_argument("--shot", help="keep the screenshot here")
+    p.add_argument("--real", action="store_true", help="wait real time (not virtual time): needed for the player's sandboxed iframe on Linux")
     a = p.parse_args()
     url = a.page if re.match(r"^[a-z]+://", a.page) else pathlib.Path(a.page).resolve().as_uri()
     fails = []
     with tempfile.TemporaryDirectory() as td:
-        r = run(url, ["--dump-dom"], a.wait, a.width, a.height, os.path.join(td, "u1"))
+        r = run(url, ["--dump-dom"], a.wait, a.width, a.height, os.path.join(td, "u1"), a.real)
         dom = r.stdout
         console = [ln for ln in r.stderr.splitlines() if "CONSOLE" in ln]
         bad = [ln for ln in console if re.search(r"Uncaught|TypeError|ReferenceError|SyntaxError", ln)]
@@ -82,7 +83,7 @@ def main():
             fails.append("the loading cover is still up")
         fails += ["console: " + b[-300:] for b in bad]
         shot = a.shot or os.path.join(td, "shot.png")
-        run(url, [f"--screenshot={shot}"], a.wait, a.width, a.height, os.path.join(td, "u2"))
+        run(url, [f"--screenshot={shot}"], a.wait, a.width, a.height, os.path.join(td, "u2"), a.real)
         if not os.path.exists(shot):
             fails.append("no screenshot")
         else:
