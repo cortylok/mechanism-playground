@@ -1,0 +1,45 @@
+{
+  "description": "A 2-finger gripper (CAD model by Hussein Syria): a motor turns the lead screw, the screw pushes the slider, and two four-bar linkages move the jaws almost parallel. Press Close to grip the red test cylinder and read the grip force; change the motor torque, screw efficiency and object size in Settings. You can also grab a jaw, a link or the crank and move it by hand (the screw friction resists).",
+  "notes": [
+    "Model: 1 DOF (slider travel 0-30 mm: 0 = jaws closed as in the CAD, 30 = the screw collar meets the bracket). Linkage solved by physics/modules/linkage2d.js from the pin positions. Masses from the SolidWorks export with materials applied: aluminium jaws, steel pins (as asked); other parts assumed (aluminium bracket, links and slider; steel screw, gear, crank, nuts). The screw's spin, reflected through its 3 mm lead, is most of the moving mass the motor feels.",
+    "Grip: the test cylinder sits in the jaw notch; its contact is a stiff spring with damping (Settings: damping ratio 0 = bouncy rubber). Grip force = screw push x the linkage's mechanical advantage. The motor's torque falls from stall to zero at its no-load speed (300 rpm = 15 mm/s at the slider), so the jaws meet the object gently. Gravity is off: the gripper's mounting is not known.",
+    "Model credit: 2-finger robotic gripper mechanism (end effector) by Hussein Syria, shared on GrabCAD on September 11th, 2026. The original SolidWorks parts are not included here: only meshes exported from them, plus this playground's own physics."
+  ],
+  "views": {
+    "top": {
+      "label": "Top",
+      "t": [
+        90,
+        0,
+        0
+      ],
+      "r": 900,
+      "th": -1.5708,
+      "ph": 1.45
+    },
+    "side": {
+      "label": "Side",
+      "t": [
+        90,
+        0,
+        0
+      ],
+      "r": 900,
+      "th": -1.5708,
+      "ph": 0.02
+    },
+    "jaws": {
+      "label": "Jaws",
+      "t": [
+        215,
+        0,
+        0
+      ],
+      "r": 420,
+      "th": -1.5708,
+      "ph": 1.2
+    }
+  },
+  "defaultView": "iso",
+  "speed0": 1
+}

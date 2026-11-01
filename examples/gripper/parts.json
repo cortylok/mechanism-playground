@@ -1,0 +1,1858 @@
+{
+ "name": "gripper",
+ "groups": [
+  {
+   "key": "jaws",
+   "label": "Jaws",
+   "colour": "#c2a54a"
+  },
+  {
+   "key": "links",
+   "label": "Links",
+   "colour": "#5f86ad"
+  },
+  {
+   "key": "drive",
+   "label": "Slider, screw, gear",
+   "colour": "#3d4247"
+  },
+  {
+   "key": "pins",
+   "label": "Pins + nuts",
+   "colour": "#9aa3ab"
+  },
+  {
+   "key": "bracket",
+   "label": "Bracket",
+   "colour": "#4f8a5b",
+   "mode": "solid"
+  },
+  {
+   "key": "object",
+   "label": "Test object",
+   "colour": "#d0452f"
+  }
+ ],
+ "parts": [
+  {
+   "id": "pin3-7",
+   "stl": "meshes/pin3-7.stl",
+   "label": "pin3 (pin3-7)",
+   "group": "pins",
+   "mass": 0.022404,
+   "com": [
+    96.0,
+    4.9311,
+    -42.95
+   ],
+   "inertia": [
+    [
+     5.649959,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.233004,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     5.649959
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin3.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin1-5",
+   "stl": "meshes/pin1-5.stl",
+   "label": "pin1 (pin1-5)",
+   "group": "pins",
+   "mass": 0.013227,
+   "com": [
+    43.0,
+    1.241,
+    -30.0
+   ],
+   "inertia": [
+    [
+     1.068832,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.159614,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.068832
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin1.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "connctor small-2",
+   "stl": "meshes/connctor_small-2.stl",
+   "label": "Small connector (connctor small-2)",
+   "group": "links",
+   "mass": 0.004501,
+   "com": [
+    52.9451,
+    0.0,
+    -31.0465
+   ],
+   "inertia": [
+    [
+     0.093992,
+     -0.0,
+     0.027043
+    ],
+    [
+     -0.0,
+     0.423376,
+     0.0
+    ],
+    [
+     0.027043,
+     0.0,
+     0.348141
+    ]
+   ],
+   "info": {
+    "kind": "Links",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "connctor small.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin2-7",
+   "stl": "meshes/pin2-7.stl",
+   "label": "pin2 (pin2-7)",
+   "group": "pins",
+   "mass": 0.020952,
+   "com": [
+    79.65,
+    2.8646,
+    -62.5
+   ],
+   "inertia": [
+    [
+     4.438484,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.24368,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     4.438484
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin2.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-10",
+   "stl": "meshes/Nut-10.stl",
+   "label": "Nut (Nut-10)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    43.0,
+    -11.5,
+    -30.0
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-11",
+   "stl": "meshes/Nut-11.stl",
+   "label": "Nut (Nut-11)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    62.8902,
+    -14.0,
+    -32.093
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin4-5",
+   "stl": "meshes/pin4-5.stl",
+   "label": "pin4 (pin4-5)",
+   "group": "pins",
+   "mass": 0.014507,
+   "com": [
+    62.8902,
+    2.184,
+    -32.093
+   ],
+   "inertia": [
+    [
+     1.437869,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.169874,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.437869
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin4.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-14",
+   "stl": "meshes/Nut-14.stl",
+   "label": "Nut (Nut-14)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    137.2361,
+    -21.5,
+    -54.6126
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-12",
+   "stl": "meshes/Nut-12.stl",
+   "label": "Nut (Nut-12)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    96.0,
+    -21.5,
+    -42.95
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-13",
+   "stl": "meshes/Nut-13.stl",
+   "label": "Nut (Nut-13)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    144.1948,
+    -21.5,
+    -29.6362
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-15",
+   "stl": "meshes/Nut-15.stl",
+   "label": "Nut (Nut-15)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    79.65,
+    -21.5,
+    -62.5
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin3-5",
+   "stl": "meshes/pin3-5.stl",
+   "label": "pin3 (pin3-5)",
+   "group": "pins",
+   "mass": 0.022404,
+   "com": [
+    96.0,
+    4.9311,
+    42.95
+   ],
+   "inertia": [
+    [
+     5.649959,
+     0.0,
+     -0.0
+    ],
+    [
+     0.0,
+     0.233004,
+     0.0
+    ],
+    [
+     -0.0,
+     0.0,
+     5.649959
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin3.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin4-4",
+   "stl": "meshes/pin4-4.stl",
+   "label": "pin4 (pin4-4)",
+   "group": "pins",
+   "mass": 0.014507,
+   "com": [
+    62.8902,
+    2.184,
+    32.093
+   ],
+   "inertia": [
+    [
+     1.437869,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.169874,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.437869
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin4.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-4",
+   "stl": "meshes/Nut-4.stl",
+   "label": "Nut (Nut-4)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    144.1948,
+    -21.5,
+    29.6362
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin2-3",
+   "stl": "meshes/pin2-3.stl",
+   "label": "pin2 (pin2-3)",
+   "group": "pins",
+   "mass": 0.020952,
+   "com": [
+    137.2361,
+    2.8646,
+    54.6126
+   ],
+   "inertia": [
+    [
+     4.438484,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.24368,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     4.438484
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin2.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin2-4",
+   "stl": "meshes/pin2-4.stl",
+   "label": "pin2 (pin2-4)",
+   "group": "pins",
+   "mass": 0.020952,
+   "com": [
+    79.65,
+    2.8646,
+    62.5
+   ],
+   "inertia": [
+    [
+     4.438484,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.24368,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     4.438484
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin2.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-6",
+   "stl": "meshes/Nut-6.stl",
+   "label": "Nut (Nut-6)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    43.0,
+    -11.5,
+    30.0
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-5",
+   "stl": "meshes/Nut-5.stl",
+   "label": "Nut (Nut-5)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    137.2361,
+    -21.5,
+    54.6126
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-7",
+   "stl": "meshes/Nut-7.stl",
+   "label": "Nut (Nut-7)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    79.65,
+    -21.5,
+    62.5
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-9",
+   "stl": "meshes/Nut-9.stl",
+   "label": "Nut (Nut-9)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    62.8902,
+    -14.0,
+    32.093
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin3-4",
+   "stl": "meshes/pin3-4.stl",
+   "label": "pin3 (pin3-4)",
+   "group": "pins",
+   "mass": 0.022404,
+   "com": [
+    144.1948,
+    4.9311,
+    29.6362
+   ],
+   "inertia": [
+    [
+     5.649959,
+     0.0,
+     -0.0
+    ],
+    [
+     0.0,
+     0.233004,
+     0.0
+    ],
+    [
+     -0.0,
+     0.0,
+     5.649959
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin3.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Nut-8",
+   "stl": "meshes/Nut-8.stl",
+   "label": "Nut (Nut-8)",
+   "group": "pins",
+   "mass": 0.001806,
+   "com": [
+    96.0,
+    -21.5,
+    42.95
+   ],
+   "inertia": [
+    [
+     0.027043,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.051378,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.027043
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Nut.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "crank-1",
+   "stl": "meshes/crank-1.stl",
+   "label": "Crank handle (crank-1)",
+   "group": "drive",
+   "mass": 0.003085,
+   "com": [
+    -50.4153,
+    -7.009,
+    13.8069
+   ],
+   "inertia": [
+    [
+     0.107576,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.009632,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.107576
+    ]
+   ],
+   "info": {
+    "kind": "Drive",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "crank.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "spur gear_iso-1",
+   "stl": "meshes/spur_gear_iso-1.stl",
+   "label": "Spur gear (Toolbox) (spur gear_iso-1)",
+   "group": "drive",
+   "mass": 0.004569,
+   "com": [
+    -50.4153,
+    0.991,
+    13.8069
+   ],
+   "inertia": [
+    [
+     0.080227,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.148271,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     0.080227
+    ]
+   ],
+   "info": {
+    "kind": "Drive",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "spur gear_iso.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin1-4",
+   "stl": "meshes/pin1-4.stl",
+   "label": "pin1 (pin1-4)",
+   "group": "pins",
+   "mass": 0.013227,
+   "com": [
+    43.0,
+    1.241,
+    30.0
+   ],
+   "inertia": [
+    [
+     1.068832,
+     -0.0,
+     0.0
+    ],
+    [
+     -0.0,
+     0.159614,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.068832
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin1.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Jaw-1",
+   "stl": "meshes/Jaw-1.stl",
+   "label": "Jaw (Jaw-1)",
+   "group": "jaws",
+   "mass": 0.407676,
+   "com": [
+    192.6312,
+    0.0,
+    24.2328
+   ],
+   "inertia": [
+    [
+     127.438242,
+     -0.0,
+     -75.376667
+    ],
+    [
+     -0.0,
+     568.90785,
+     -0.0
+    ],
+    [
+     -75.376667,
+     -0.0,
+     560.68892
+    ]
+   ],
+   "info": {
+    "kind": "Jaws",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (as asked), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Jaw.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Slider-1",
+   "stl": "meshes/Slider-1.stl",
+   "label": "Slider (Slider-1)",
+   "group": "drive",
+   "mass": 0.059686,
+   "com": [
+    42.7971,
+    0.0,
+    -0.0
+   ],
+   "inertia": [
+    [
+     28.909159,
+     0.0,
+     -0.0
+    ],
+    [
+     0.0,
+     28.395725,
+     0.0
+    ],
+    [
+     -0.0,
+     0.0,
+     4.401321
+    ]
+   ],
+   "info": {
+    "kind": "Drive",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Slider.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "connctor small-1",
+   "stl": "meshes/connctor_small-1.stl",
+   "label": "Small connector (connctor small-1)",
+   "group": "links",
+   "mass": 0.004501,
+   "com": [
+    52.9451,
+    0.0,
+    31.0465
+   ],
+   "inertia": [
+    [
+     0.093992,
+     -0.0,
+     -0.027043
+    ],
+    [
+     -0.0,
+     0.423376,
+     -0.0
+    ],
+    [
+     -0.027043,
+     -0.0,
+     0.348141
+    ]
+   ],
+   "info": {
+    "kind": "Links",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "connctor small.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "connctor Big-2",
+   "stl": "meshes/connctor_Big-2.stl",
+   "label": "Big connector (connctor Big-2)",
+   "group": "links",
+   "mass": 0.011154,
+   "com": [
+    120.0974,
+    22.5,
+    36.2931
+   ],
+   "inertia": [
+    [
+     0.449798,
+     0.0,
+     0.755106
+    ],
+    [
+     0.0,
+     3.377946,
+     -0.0
+    ],
+    [
+     0.755106,
+     -0.0,
+     2.97462
+    ]
+   ],
+   "info": {
+    "kind": "Links",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "connctor Big.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "shift-1",
+   "stl": "meshes/shift-1.stl",
+   "label": "Lead screw (shift-1)",
+   "group": "drive",
+   "mass": 0.114359,
+   "com": [
+    -22.4325,
+    0.0,
+    -0.0
+   ],
+   "inertia": [
+    [
+     2.281061,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     231.539667,
+     -0.0
+    ],
+    [
+     0.0,
+     0.0,
+     231.539667
+    ]
+   ],
+   "info": {
+    "kind": "Drive",
+    "rows": [
+     [
+      "Material",
+      "Steel (assumed), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "shift.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Bracket-1",
+   "stl": "meshes/Bracket-1.stl",
+   "label": "Bracket (Bracket-1)",
+   "group": "bracket",
+   "mass": 0.313367,
+   "com": [
+    50.1733,
+    0.0,
+    0.0
+   ],
+   "inertia": [
+    [
+     434.014365,
+     0.0,
+     -0.0
+    ],
+    [
+     0.0,
+     813.525163,
+     -0.0
+    ],
+    [
+     -0.0,
+     -0.0,
+     510.943853
+    ]
+   ],
+   "info": {
+    "kind": "Bracket",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Bracket.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Jaw Connctor-1",
+   "stl": "meshes/Jaw_Connctor-1.stl",
+   "label": "Jaw connector (Jaw Connctor-1)",
+   "group": "links",
+   "mass": 0.098915,
+   "com": [
+    96.7426,
+    0.0,
+    54.0548
+   ],
+   "inertia": [
+    [
+     59.182888,
+     0.0,
+     18.254441
+    ],
+    [
+     0.0,
+     68.223271,
+     0.0
+    ],
+    [
+     18.254441,
+     0.0,
+     19.782274
+    ]
+   ],
+   "info": {
+    "kind": "Links",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Jaw Connctor.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Jaw-2",
+   "stl": "meshes/Jaw-2.stl",
+   "label": "Jaw (Jaw-2)",
+   "group": "jaws",
+   "mass": 0.407676,
+   "com": [
+    192.6312,
+    0.0,
+    -24.2328
+   ],
+   "inertia": [
+    [
+     127.438242,
+     -0.0,
+     75.376667
+    ],
+    [
+     -0.0,
+     568.90785,
+     0.0
+    ],
+    [
+     75.376667,
+     0.0,
+     560.68892
+    ]
+   ],
+   "info": {
+    "kind": "Jaws",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (as asked), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Jaw.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "connctor Big-3",
+   "stl": "meshes/connctor_Big-3.stl",
+   "label": "Big connector (connctor Big-3)",
+   "group": "links",
+   "mass": 0.011154,
+   "com": [
+    120.0974,
+    22.5,
+    -36.2931
+   ],
+   "inertia": [
+    [
+     0.449798,
+     0.0,
+     -0.755106
+    ],
+    [
+     0.0,
+     3.377946,
+     0.0
+    ],
+    [
+     -0.755106,
+     0.0,
+     2.97462
+    ]
+   ],
+   "info": {
+    "kind": "Links",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "connctor Big.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin2-6",
+   "stl": "meshes/pin2-6.stl",
+   "label": "pin2 (pin2-6)",
+   "group": "pins",
+   "mass": 0.020952,
+   "com": [
+    137.2361,
+    2.8646,
+    -54.6126
+   ],
+   "inertia": [
+    [
+     4.438484,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.24368,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     4.438484
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin2.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "pin3-6",
+   "stl": "meshes/pin3-6.stl",
+   "label": "pin3 (pin3-6)",
+   "group": "pins",
+   "mass": 0.022404,
+   "com": [
+    144.1948,
+    4.9311,
+    -29.6362
+   ],
+   "inertia": [
+    [
+     5.649959,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.233004,
+     -0.0
+    ],
+    [
+     0.0,
+     -0.0,
+     5.649959
+    ]
+   ],
+   "info": {
+    "kind": "Pins",
+    "rows": [
+     [
+      "Material",
+      "Steel (as asked), 7.85 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "pin3.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "Jaw Connctor-2",
+   "stl": "meshes/Jaw_Connctor-2.stl",
+   "label": "Jaw connector (Jaw Connctor-2)",
+   "group": "links",
+   "mass": 0.098915,
+   "com": [
+    96.7426,
+    0.0,
+    -54.0548
+   ],
+   "inertia": [
+    [
+     59.182888,
+     -0.0,
+     -18.254441
+    ],
+    [
+     -0.0,
+     68.223271,
+     0.0
+    ],
+    [
+     -18.254441,
+     0.0,
+     19.782274
+    ]
+   ],
+   "info": {
+    "kind": "Links",
+    "rows": [
+     [
+      "Material",
+      "Aluminium (assumed), 2.7 g/cm\u00b3"
+     ],
+     [
+      "SolidWorks part",
+      "Jaw Connctor.SLDPRT"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "test-object",
+   "stl": "meshes/test_object.stl",
+   "group": "object",
+   "label": "Test object (cylinder)",
+   "colour": "#d0452f",
+   "info": {
+    "kind": "Test load",
+    "rows": [
+     [
+      "What",
+      "A round part between the jaws. Set its diameter and stiffness in Settings (0 = no object)."
+     ]
+    ]
+   }
+  }
+ ],
+ "geometry": {
+  "pitch": 3.0,
+  "gearCentre": [
+   -50.42,
+   13.81
+  ],
+  "gearTeeth": 12,
+  "object": [
+   218.0,
+   0.0
+  ],
+  "tip": [
+   270.0,
+   0.8
+  ],
+  "profile": [
+   [
+    180.0,
+    2.1
+   ],
+   [
+    183.8,
+    2.0
+   ],
+   [
+    218.7,
+    14.4
+   ],
+   [
+    220.1,
+    14.3
+   ],
+   [
+    221.8,
+    14.2
+   ],
+   [
+    223.0,
+    14.0
+   ],
+   [
+    223.5,
+    13.9
+   ],
+   [
+    224.1,
+    13.8
+   ],
+   [
+    224.6,
+    13.7
+   ],
+   [
+    225.1,
+    13.6
+   ],
+   [
+    225.7,
+    13.5
+   ],
+   [
+    226.2,
+    13.4
+   ],
+   [
+    226.7,
+    13.3
+   ],
+   [
+    227.2,
+    13.2
+   ],
+   [
+    228.1,
+    12.9
+   ],
+   [
+    228.5,
+    12.8
+   ],
+   [
+    229.1,
+    12.6
+   ],
+   [
+    230.1,
+    12.3
+   ],
+   [
+    230.7,
+    12.1
+   ],
+   [
+    231.0,
+    12.0
+   ],
+   [
+    231.7,
+    11.8
+   ],
+   [
+    232.2,
+    11.6
+   ],
+   [
+    232.6,
+    11.4
+   ],
+   [
+    233.1,
+    11.2
+   ],
+   [
+    233.5,
+    11.0
+   ],
+   [
+    234.2,
+    10.7
+   ],
+   [
+    234.7,
+    10.5
+   ],
+   [
+    235.1,
+    10.3
+   ],
+   [
+    235.6,
+    10.1
+   ],
+   [
+    236.0,
+    9.9
+   ],
+   [
+    236.6,
+    9.6
+   ],
+   [
+    237.1,
+    9.3
+   ],
+   [
+    237.6,
+    9.0
+   ],
+   [
+    238.1,
+    8.7
+   ],
+   [
+    238.6,
+    8.4
+   ],
+   [
+    239.2,
+    8.1
+   ],
+   [
+    239.7,
+    7.8
+   ],
+   [
+    240.2,
+    7.5
+   ],
+   [
+    240.6,
+    7.2
+   ],
+   [
+    241.2,
+    6.8
+   ],
+   [
+    241.7,
+    6.4
+   ],
+   [
+    242.1,
+    6.1
+   ],
+   [
+    242.7,
+    5.7
+   ],
+   [
+    243.2,
+    5.3
+   ],
+   [
+    243.7,
+    4.9
+   ],
+   [
+    244.1,
+    4.6
+   ],
+   [
+    244.7,
+    4.1
+   ],
+   [
+    245.2,
+    3.6
+   ],
+   [
+    245.7,
+    3.2
+   ],
+   [
+    246.2,
+    2.7
+   ],
+   [
+    246.7,
+    2.2
+   ],
+   [
+    247.2,
+    1.7
+   ],
+   [
+    247.7,
+    1.3
+   ],
+   [
+    247.9,
+    1.1
+   ],
+   [
+    248.3,
+    1.1
+   ],
+   [
+    257.2,
+    0.9
+   ],
+   [
+    264.3,
+    0.8
+   ]
+  ],
+  "travel": [
+   0.0,
+   30.0
+  ]
+ }
+}

@@ -6,6 +6,7 @@ part for its spec card, draw on the model. Each project builds to one HTML file 
 
 **Live:** [player](https://cortylok.github.io/mechanism-playground/player.html) ·
 [starter: lid on a gas strut](https://cortylok.github.io/mechanism-playground/starter.html) ·
+[2-finger gripper](https://cortylok.github.io/mechanism-playground/gripper.html) ·
 [pneumatic slide](https://cortylok.github.io/mechanism-playground/pneumatic-slide.html) ·
 [S3 side table (showcase, 7 MB)](https://cortylok.github.io/mechanism-playground/s3-side-table.html)
 
@@ -54,7 +55,7 @@ request that adds it to `projects.json`.
 | `template/` | `page.html` (the playground page), `player.html` (the loader shell) |
 | `build/` | `pack.py` (STLs -> packed data), `build.py` (pages, bundles, player), `contact_map.py` |
 | `tools/` | `sw_export.py`, `holes.py`, `headless.py` |
-| `examples/` | `starter`, `pneumatic-slide`, `s3-side-table` |
+| `examples/` | `starter`, `gripper` (a real downloaded SolidWorks assembly, CAD by Hussein Syria), `pneumatic-slide`, `s3-side-table` |
 | `tests/` | `node tests/run.js` runs every test (node and Python) |
 
 ## Limits
@@ -62,6 +63,10 @@ request that adds it to `projects.json`.
 Rigid parts only (no flex or FEA). Air is a lumped model, not CFD: expect stroke times within about 10-20 % with
 datasheet values. Linkages are planar. Free multi-body collisions are not modelled: contact is through stops, guides
 and precomputed maps that the mechanism defines.
+
+## Credits
+
+Gripper CAD model: "2-finger robotic gripper mechanism (end effector)" by Hussein Syria (GrabCAD, September 11th, 2026).
 
 ## Licence
 

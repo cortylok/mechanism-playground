@@ -1,0 +1,1 @@
+{ "name": "gripper", "title": "2-finger gripper", "mech": ["linkage.js", "mechanism.js"], "config": "config.json" }

@@ -183,6 +183,9 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     <details class="pan" data-k="view" open>
       <summary>View</summary>
       <div class="views" id="views"></div>
+      <h3>Look</h3>
+      <div class="views" role="group" aria-label="Look"><button type="button" id="vOutline" aria-pressed="false">Outlines</button><button type="button" id="vShadow" aria-pressed="false">Shadows</button><button type="button" id="vEnv" aria-pressed="false">Bounce light</button></div>
+      <p class="small" id="lookS">Outlines: fine feature edges. Shadows: a fixed key light, parts shadow themselves and each other. Bounce light: soft light from all sides, as in a room.</p>
     </details>
     <details class="pan" data-k="paint">
       <summary>Paint</summary>
@@ -286,9 +289,45 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.5, 8000);
     camera.up.set(0, 0, 1);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.75));
-    const head = new THREE.DirectionalLight(0xffffff, 0.75);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.75);
+    scene.add(hemi);
+    const head = new THREE.DirectionalLight(0xffffff, 0.75);           // follows the camera
     scene.add(head);
+    // key light: fixed above the model (upper front left), casts the shadows
+    const key = new THREE.DirectionalLight(0xffffff, 0);
+    key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+    scene.add(key); scene.add(key.target);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const LOOK = { outline: false, shadow: true, env: true };
+    let envTex = null;
+    // bounce light: image-based lighting from a small studio "room" (bright ceiling panel, two side panels, warm floor),
+    // pre-filtered by three.js' PMREM generator - soft fill from every side, no extra library
+    function roomEnv() {
+      const s = new THREE.Scene(), add = (geo, col, pos, look) => {
+        const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide })); m.position.set(...pos); if (look) m.lookAt(0, 0, 0); s.add(m); };
+      add(new THREE.BoxGeometry(10, 10, 10), new THREE.Color(0.2, 0.21, 0.22), [0, 0, 0]);
+      add(new THREE.PlaneGeometry(7, 7), new THREE.Color(1.5, 1.5, 1.45), [0, 0, 4.9], true);           // ceiling (z up)
+      add(new THREE.PlaneGeometry(4, 3), new THREE.Color(0.8, 0.8, 0.85), [-4.9, -1.5, 1], true);
+      add(new THREE.PlaneGeometry(4, 3), new THREE.Color(0.5, 0.5, 0.52), [4.9, 2, 0.5], true);
+      add(new THREE.PlaneGeometry(9.8, 9.8), new THREE.Color(0.3, 0.26, 0.22), [0, 0, -4.9], true);   // warm floor bounce
+      const pm = new THREE.PMREMGenerator(renderer), t = pm.fromScene(s, 0.04).texture; pm.dispose();
+      return t;
+    }
+    function placeKey(c, R) {
+      const dir = new THREE.Vector3(0.32, -0.56, 0.77).normalize();   // to the right of the default view, 50 deg up: shadows fall where they show
+      key.target.position.copy(c); key.position.copy(c).addScaledVector(dir, 2 * R);
+      const sc = key.shadow.camera; sc.left = sc.bottom = -1.05 * R; sc.right = sc.top = 1.05 * R; sc.near = 0.5 * R; sc.far = 3.6 * R; sc.updateProjectionMatrix();
+      key.shadow.bias = -0.0004; key.shadow.normalBias = R * 0.004;
+    }
+    function applyLook() {
+      key.intensity = LOOK.shadow ? 0.55 : 0; head.intensity = (LOOK.shadow ? 0.3 : 0.6) * (LOOK.env ? 0.75 : 1) + (LOOK.env ? 0 : 0.15);
+      if (LOOK.env && !envTex) envTex = roomEnv();
+      scene.environment = LOOK.env ? envTex : null; hemi.intensity = LOOK.env ? 0.12 : 0.6;
+      for (const m of new Set(objs.map((o) => o.mesh.material).concat(...Object.values(matsOf)))) m.needsUpdate = true;
+      $("vOutline").setAttribute("aria-pressed", String(LOOK.outline)); $("vShadow").setAttribute("aria-pressed", String(LOOK.shadow));
+      $("vEnv").setAttribute("aria-pressed", String(LOOK.env));
+      applyModes();
+    }
     const gi = sim.grabDof.dof, unit = M.dofs[gi].unit || "mm";
 
     // ---------------------------------------------------------------- groups + materials
@@ -299,7 +338,8 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     const mode = {}, MAT = {};
     for (const [g, , col, m, op] of GROUPS) {
       mode[g] = m;
-      MAT[g] = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, metalness: 0.05, flatShading: true });
+      MAT[g] = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, metalness: 0.05, flatShading: true,
+        polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });   // faces sit a hair behind their outlines
       if (op != null) MAT[g].userData.opac = op;                 // the group's see-through opacity (default 0.3)
     }
     // ---------------------------------------------------------------- section view: one global cut plane, hatched caps per
@@ -371,7 +411,10 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       const own = objs.filter((o) => o.pm).length, ob = $("bOwn");
       ob.hidden = !own; ob.textContent = `Reset ${own} part${own === 1 ? "" : "s"} set on their own cards`;
       const allOff = objs.length > 0 && objs.every((o) => pmode(o) === "off");
-      EDGE.root.visible = allOff; if (allOff) buildEdges();
+      EDGE.allOff = allOff;
+      EDGE.root.visible = allOff || LOOK.outline; if (EDGE.root.visible) buildEdges();
+      edgeMat.color.set(allOff ? (css("--muted") || "#5a6368") : "#16191b"); edgeMat.opacity = allOff ? 0.6 : 0.55;
+      for (const o of objs) { o.mesh.castShadow = LOOK.shadow && pmode(o) === "solid"; o.mesh.receiveShadow = LOOK.shadow; }
       dirty = true;
     }
     // ---------------------------------------------------------------- outline when every body is off
@@ -388,7 +431,9 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       }
       EDGE.state = 2; dirty = true;
     }
-    function syncEdges() { if (EDGE.root.visible) for (const { e, o } of EDGE.lines) { e.matrix.copy(o.mesh.matrix); e.matrixWorldNeedsUpdate = true; } }
+    function syncEdges() {                                             // outlines follow the poses; in outline mode only visible parts
+      if (EDGE.root.visible) for (const { e, o } of EDGE.lines) { e.visible = EDGE.allOff || o.mesh.visible; e.matrix.copy(o.mesh.matrix); e.matrixWorldNeedsUpdate = true; }
+    }
 
     // ---------------------------------------------------------------- parts + poses (the mechanism's pose() gives each moving
     // part a 4x4 matrix, column-major; parts it leaves out stay where the CAD put them)
@@ -1162,6 +1207,9 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       const c = bb.getCenter(new THREE.Vector3()), sz = bb.getSize(new THREE.Vector3());
       modelSize = Math.max(1, sz.x, sz.y, sz.z);
       SEC.C.copy(CFG.sectionCentre ? new THREE.Vector3(...CFG.sectionCentre) : c);
+      placeKey(c, bb.getBoundingSphere(new THREE.Sphere()).radius);
+      Object.assign(LOOK, { shadow: !phone() }, CFG.look || {});        // shadows off by default on phones (speed)
+      for (const [id, k] of [["vOutline", "outline"], ["vShadow", "shadow"], ["vEnv", "env"]]) $(id).addEventListener("click", () => { LOOK[k] = !LOOK[k]; applyLook(); });
       secRange = { front: [bb.min.y - SEC.C.y - 5, bb.max.y - SEC.C.y + 5], top: [bb.min.z - SEC.C.z - 5, bb.max.z - SEC.C.z + 5], right: [bb.min.x - SEC.C.x - 5, bb.max.x - SEC.C.x + 5] };
       VIEWS = Object.assign({ iso: { t: [c.x, c.y, c.z], r: modelSize * 2.6, th: -2.3, ph: 0.32, label: "Iso" } }, CFG.views || {});
       for (const [k, v] of Object.entries(VIEWS)) {
@@ -1170,11 +1218,11 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       }
       if (M.inset) { $("inset").hidden = false; $("insetT").textContent = M.inset.title || ""; }
       buildSettings(); setSpeed(SPEED0); buildCaps();
-      themeScene(); resize(); setView(CFG.defaultView || "iso"); applyModes(); secUI(); show(); drawInset();
+      themeScene(); resize(); setView(CFG.defaultView || "iso"); applyLook(); secUI(); show(); drawInset();
       dbReady.then(paintConnect);
       const VKEY = "mpg." + slug + ".view";
       const viewState = () => JSON.stringify({ cam, mode, sec: { on: SEC.on, base: SEC.base, off: SEC.off, a: SEC.a, b: SEC.b, flip: SEC.flip, caps: SEC.caps },
-        mark: { colour: MARK.colour, top: MARK.top }, parts: Object.fromEntries(objs.filter((o) => o.pm).map((o) => [o.p.id, o.pm])) });
+        mark: { colour: MARK.colour, top: MARK.top }, look: LOOK, parts: Object.fromEntries(objs.filter((o) => o.pm).map((o) => [o.p.id, o.pm])) });
       try {
         const s = JSON.parse(localStorage.getItem(VKEY) || "null");
         if (s) {
@@ -1183,6 +1231,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
           for (const [id, pm] of Object.entries(s.parts || {})) { const o = byId[id]; if (o) { ownMat(o); o.pm = pm; } }
           Object.assign(SEC, s.sec || {});
           if (s.mark) { MARK.colour = s.mark.colour || MARK.colour; MARK.top = !!s.mark.top; }
+          if (s.look) { for (const k of ["outline", "shadow", "env"]) if (k in s.look) LOOK[k] = !!s.look[k]; applyLook(); }
           document.querySelectorAll("[data-mc]").forEach((q) => q.setAttribute("aria-pressed", String(q.dataset.mc === MARK.colour)));
           document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", "false"));
           applyModes(); secUI(); syncTop();

@@ -18,13 +18,14 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Build the examples and the player
-        run: python build/build.py examples/starter examples/pneumatic-slide examples/s3-side-table --player
+        run: python build/build.py examples/starter examples/gripper examples/pneumatic-slide examples/s3-side-table --player
       - name: Tests (node + Python)
         run: node tests/run.js
       - name: Headless page checks
         run: |
           python tools/headless.py dist/starter.html
           python tools/headless.py dist/pneumatic-slide.html
+          python tools/headless.py dist/gripper.html
           python tools/headless.py dist/s3-side-table.html --wait 30000
           (cd dist && python -m http.server 8765 --bind 127.0.0.1 &) ; sleep 2
           python tools/headless.py "http://127.0.0.1:8765/player.html?project=starter.playground.json"

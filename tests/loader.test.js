@@ -3,7 +3,7 @@ const fs = require("fs"), path = require("path");
 const BUNDLE = require("../physics/bundle.js"), CORE = require("../physics/core.js");
 const { check, done } = require("./_lib.js");
 const dist = path.join(__dirname, "..", "dist");
-const names = ["starter", "pneumatic-slide", "s3-side-table"];
+const names = ["starter", "gripper", "pneumatic-slide", "s3-side-table"];
 (async () => {
   for (const n of names) {
     const f = path.join(dist, `${n}.playground.json`);
