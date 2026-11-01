@@ -186,6 +186,21 @@ The playground can load different projects. A project can be on the user's compu
 - **Standalone pages stay:** `dist/<name>.html` is still built for email and phones (one file, no loading).
 - **Marker and paint** use a per-project key (`project name`) in the artifact db and localStorage.
 
+## 10b. Deviations found while building (2026-11-01)
+
+- `build/phys_tables.py` became `physics/mass_table.js`: one pose implementation (the mechanism's `pose()`), no
+  Python copy.
+- Added `examples/pneumatic-slide/` to show the pneumatic UI (valve button, gauges, flow-control settings).
+- Pneumatic range guard: real cushions and hand pushes raise a chamber above supply, so the guard stops only on
+  non-physical results (absolute pressure <= 0, NaN, > 5 x supply), not at supply + 1 %.
+- The player runs each project in a sandboxed iframe (`sandbox="allow-scripts"`, opaque origin) instead of a
+  teardown/re-boot in one page: project code cannot read the player's storage, and each load is a fresh page.
+- A mechanism may bring its own engine (`createSim()`): the S3 example keeps its original physics this way and runs
+  on the generic page and in the player. Its "find a pivot" panel and J3 study (S3-only) are not in the generic page.
+- Substep count is held steady (power of two with hysteresis): a count that follows the speed every frame drained
+  ~0.4 %/s of energy from an undamped spring.
+- `tools/sw_export.py` is written from the S3 export pattern but was not run (SolidWorks was not open).
+
 ## 11. Out of scope for v1
 
 - STEP import.

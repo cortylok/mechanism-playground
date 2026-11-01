@@ -19,7 +19,7 @@ with numpy + trimesh + fast-simplification for packing, headless Chrome for page
 files, interfaces, tests (as pass rules and test names) and commands; the implementation code is in the commits, not
 copied here.
 
-**Private sources (read, never copied whole):** `S` = `C:\Users\corty\Documents\Solidworks\Side Table\claude work\scripts 24 (assembly playground)\`.
+**Private sources (read, never copied whole):** `S` = the private S3 playground scripts folder (`scripts 24 (assembly playground)`).
 
 ---
 
