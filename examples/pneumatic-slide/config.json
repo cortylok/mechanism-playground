@@ -1,0 +1,6 @@
+{
+  "description": "A 32 bore x 100 stroke cylinder drives a 2 kg sled. Press Valve to extend or retract. Watch the chamber pressures; change the flow controls, cushions, supply and load in Settings. You can also push the sled by hand against the air.",
+  "notes": ["Lumped air model: two chambers with a polytropic gas law, ISO 6358 flow through valve, tubes, flow controls and cushions. Datasheet C and b values give stroke times within roughly 10-20 %. Tune them to one measured stroke for better."],
+  "views": { "top": { "label": "Top", "t": [0, 0, 40], "r": 900, "th": -1.5708, "ph": 1.45 } },
+  "speed0": 1
+}

@@ -22,7 +22,7 @@ run(s, 2.0, (x) => { worst = Math.max(worst, Math.abs(E(x) - E0) / E0); }, 0.001
 check("energy drift < 0.5 % over 10 periods", worst < 0.005, `${(worst * 100).toFixed(3)} %`);
 
 // 4 inelastic stop
-s = CORE.create({ dofs: [dof({ max: 10 })], mass: () => [1], forces: () => [5] });
+s = CORE.create({ dofs: [dof({ max: 10 })], mass: () => [1], forces: () => [500] });
 run(s, 1.0);
 check("inelastic stop", s.q[0] === 10 && s.v[0] === 0 && s.events.some((e) => e.kind === "stop"), `q ${s.q[0]} v ${s.v[0]} events ${s.events.length}`);
 

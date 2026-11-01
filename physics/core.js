@@ -19,6 +19,7 @@
     };
     if (sim.P.tscale != null) sim.tscale = sim.P.tscale;
     const scale = mech.dofs.map((d) => ACC[d.unit || "mm"]);
+    const evMin = mech.stopEventMin != null ? mech.stopEventMin : 20;   // stop hits slower than this (unit/s) log no event
     const bounds = (q) => (mech.bounds ? mech.bounds(q, sim) : mech.dofs.map((d) => ({ lo: d.min, hi: d.max })));
 
     sim.event = (kind, val) => {
@@ -47,8 +48,8 @@
         }
         let q1 = q[i] + vn * dt;
         const e = (mech.dofs[i].hit && mech.dofs[i].hit.e) || 0;
-        if (q1 >= b[i].hi) { q1 = b[i].hi; if (vn > 0) { if (vn > 1) sim.event("stop", vn); vn = -e * vn; } }
-        if (q1 <= b[i].lo) { q1 = b[i].lo; if (vn < 0) { if (vn < -1) sim.event("stop", vn); vn = -e * vn; } }
+        if (q1 >= b[i].hi) { q1 = b[i].hi; if (vn > 0) { if (vn > evMin) sim.event("stop", vn); vn = -e * vn; } }
+        if (q1 <= b[i].lo) { q1 = b[i].lo; if (vn < 0) { if (vn < -evMin) sim.event("stop", vn); vn = -e * vn; } }
         q[i] = q1; v[i] = vn;
       }
       if (mech.after) mech.after(sim, dt);

@@ -1,0 +1,100 @@
+{
+ "name": "pneumatic-slide",
+ "groups": [
+  {
+   "key": "frame",
+   "label": "Base, rail, stop",
+   "colour": "#7d858c"
+  },
+  {
+   "key": "cylinder",
+   "label": "Cylinder",
+   "colour": "#5f86ad"
+  },
+  {
+   "key": "sled",
+   "label": "Sled + rod",
+   "colour": "#c2a54a"
+  }
+ ],
+ "parts": [
+  {
+   "id": "base",
+   "stl": "meshes/base.stl",
+   "group": "frame",
+   "label": "Base plate"
+  },
+  {
+   "id": "rail",
+   "stl": "meshes/rail.stl",
+   "group": "frame",
+   "label": "Rail"
+  },
+  {
+   "id": "stop",
+   "stl": "meshes/stop.stl",
+   "group": "frame",
+   "label": "End stop",
+   "info": {
+    "rows": [
+     [
+      "Note",
+      "The sled reaches it at full stroke (rod 100 mm out)."
+     ]
+    ]
+   }
+  },
+  {
+   "id": "cylinder",
+   "stl": "meshes/cylinder.stl",
+   "group": "cylinder",
+   "label": "Cylinder 32 x 100",
+   "info": {
+    "kind": "Pneumatic cylinder",
+    "rows": [
+     [
+      "Bore / rod / stroke",
+      "32 / 12 / 100 mm"
+     ],
+     [
+      "Cushions",
+      "15 mm, adjustable"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "rod",
+   "stl": "meshes/rod.stl",
+   "group": "sled",
+   "label": "Piston rod",
+   "mass": 0.15,
+   "com": [
+    -70,
+    0,
+    45.0
+   ]
+  },
+  {
+   "id": "sled",
+   "stl": "meshes/sled.stl",
+   "group": "sled",
+   "label": "Sled (load)",
+   "mass": 2.0,
+   "com": [
+    30,
+    0,
+    45
+   ],
+   "info": {
+    "kind": "Moving: rail",
+    "rows": [
+     [
+      "Mass",
+      "2.0 kg"
+     ]
+    ]
+   }
+  }
+ ]
+}
