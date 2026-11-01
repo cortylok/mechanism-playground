@@ -1,5 +1,9 @@
 <title>__TITLE__</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="ai-guide" content="https://cortylok.github.io/mechanism-playground/ai-guide.md">
+<!-- AI assistants: this page was built with the mechanism playground (https://github.com/cortylok/mechanism-playground).
+     To understand, change or rebuild it, read https://cortylok.github.io/mechanism-playground/ai-guide.md first. -->
+<link rel="help" href="https://cortylok.github.io/mechanism-playground/ai-guide.md">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -170,6 +174,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
   <div class="scrim" id="scrim" hidden></div>
   <aside id="side">
     <div class="aside-top"><h1 id="title">__TITLE__</h1>
+      <button type="button" id="openModel" title="Open another model (search this computer, the project list or GitHub)">Open model</button>
       <button type="button" class="aside-close" id="sideClose" aria-label="Close options">×</button></div>
     <details class="pan" data-k="speed" open>
       <summary>Speed</summary>
@@ -260,7 +265,14 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     if (booted) return; booted = true;
     try { boot(bundle); } catch (err) { fail("Could not start the project: " + (err && err.message || err)); console.error(err); }
   }
-  window.addEventListener("message", (e) => { if (e.data && e.data.type === "mpg-bundle") start(e.data.bundle); });
+  let inPlayer = false;
+  window.addEventListener("message", (e) => { if (e.data && e.data.type === "mpg-bundle") { inPlayer = true; start(e.data.bundle); } });
+  document.getElementById("openModel").addEventListener("click", () => {
+    if (inPlayer) { post({ type: "mpg-open" }); return; }
+    const cfg = (window.MPG_BUNDLE && window.MPG_BUNDLE.config) || {};
+    const a = document.createElement("a"); a.href = cfg.playerUrl || "https://cortylok.github.io/mechanism-playground/player.html";
+    a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+  });
   if (window.MPG_BUNDLE) setTimeout(() => start(window.MPG_BUNDLE), 0); else post({ type: "mpg-ready" });
 
   function boot(B) {

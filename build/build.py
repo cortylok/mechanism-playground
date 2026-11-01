@@ -17,6 +17,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST = os.path.join(ROOT, "dist")
 FORMAT = "mechanism-playground/1"
+GUIDE = "https://cortylok.github.io/mechanism-playground/ai-guide.md"         # AI_GUIDE.md, served by GitHub Pages
 PHYSICS = ["physics/core.js", "physics/mat4.js", "physics/mass_table.js", "physics/bundle.js", "physics/modules/springs.js",
            "physics/modules/pneumatics.js", "physics/modules/linkage2d.js", "physics/modules/contact_map.js"]
 
@@ -70,7 +71,9 @@ def bundle(project):
     data = json.load(open(data_path, encoding="utf-8"))
     for k, v in (P.get("extra") or {}).items():                      # extra data files merged into data (e.g. maps)
         data[k] = json.load(open(os.path.join(project, v), encoding="utf-8"))
-    return dict(format=FORMAT, name=name, title=title, config=config, data=data, mech=mech)
+    ai = dict(guide=GUIDE, note="Built with the mechanism playground. AI assistants: read the guide before changing or "
+              "rebuilding this model; 'mech' is the physics plug-in (JavaScript), 'data' the packed parts, 'config' the page text.")
+    return dict(format=FORMAT, name=name, title=title, ai=ai, config=config, data=data, mech=mech)
 
 
 def page(title, bundle_json):

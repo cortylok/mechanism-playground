@@ -1,0 +1,20 @@
+# Mechanism playground
+
+> Interactive, physics-based 3D browser pages for mechanisms, built from CAD exports (SolidWorks exporter included).
+> A person drags parts; masses, springs, gas struts, pneumatic cylinders, motors, linkages, friction and contacts answer.
+> One HTML file per project; a player loads any project bundle (.playground.json) from a link, a file or a GitHub search.
+
+AI assistants: read the full guide before helping someone set up or open a model. It assumes no prior knowledge.
+
+## Guide
+- [AI guide](https://cortylok.github.io/mechanism-playground/ai-guide.md): what it is, what to ask, the procedure from CAD to page, the mechanism.js contract, module APIs with units, tests, sharing, traps
+
+## Use
+- [Player](https://cortylok.github.io/mechanism-playground/player.html): open a model by link, file, folder or GitHub search; add ?project=<bundle URL>
+- [Source](https://github.com/cortylok/mechanism-playground): code, examples, tools (MIT; the S3 example is CC BY-NC 4.0)
+
+## Examples
+- [Lid on a gas strut](https://cortylok.github.io/mechanism-playground/starter.html): one hinge, gas strut, mass table
+- [2-finger gripper](https://cortylok.github.io/mechanism-playground/gripper.html): SolidWorks export, four-bar jaws, lead screw, motor, grip force (CAD by Hussein Syria)
+- [Pneumatic slide](https://cortylok.github.io/mechanism-playground/pneumatic-slide.html): cylinder, valve, flow controls, cushions
+- [S3 side table](https://cortylok.github.io/mechanism-playground/s3-side-table.html): 300-part project with its own engine

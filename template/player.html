@@ -24,7 +24,11 @@ header h1 { font: 700 20px/1 var(--f-display); margin: 0; white-space: nowrap; }
 button { font: 500 13px var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; cursor: pointer; min-height: 34px; }
 button:hover { border-color: var(--accent); }
 button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-button.primary { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+button.primary, button[aria-pressed="true"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.row input[type=search] { flex: 1 1 260px; min-width: 0; font: 14px var(--f-body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; }
+.item .tag { font: 600 11px var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent); grid-column: 1; }
+.sub { grid-column: 1 / -1; display: grid; gap: 6px; margin-top: 6px; }
+.sub .item { background: var(--bg); }
 main { position: relative; min-height: 0; }
 iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
 .panel { position: absolute; inset: 0; overflow-y: auto; padding: 24px 16px; background: var(--bg); z-index: 2; }
@@ -45,6 +49,7 @@ h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .0
 .err { border: 2px solid var(--bad); background: var(--panel); border-radius: 8px; padding: 10px 12px; font: 13px var(--f-mono); white-space: pre-wrap; }
 .trust { border: 2px solid var(--warn); background: var(--panel); border-radius: 8px; padding: 14px; display: grid; gap: 10px; }
 .trust code { font: 13px var(--f-mono); overflow-wrap: anywhere; }
+textarea { width: 100%; font: 13px var(--f-mono); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; resize: vertical; }
 .loading { color: var(--muted); font: 13px var(--f-mono); }
 @media (max-width: 720px) { header h1 { font-size: 17px; } #current { display: none; } }
 </style>
@@ -54,7 +59,7 @@ h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .0
   <h1>Mechanism playground</h1>
   <span id="current"></span>
   <span id="status" data-state="idle" hidden></span>
-  <button type="button" id="openPanel">Projects</button>
+  <button type="button" id="openPanel">Open model</button>
 </header>
 <main>
   <div class="panel player-shell" id="panel">
@@ -69,14 +74,31 @@ h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .0
         <p class="small">A project bundle contains JavaScript that runs the physics. It runs in a sandbox with no access to this site's data, but load only projects you trust.</p>
         <div class="row"><button type="button" class="primary" id="trustYes">Load it</button><button type="button" id="trustNo">Cancel</button></div>
       </div>
+      <h3>Find a model</h3>
+      <form class="row" id="findForm"><input type="search" id="q" placeholder="Search: gripper, latch, pneumatic… (empty = all)" aria-label="Search models"><button type="submit" class="primary">Search</button></form>
+      <div class="row" role="group" aria-label="Where to search">
+        <button type="button" class="src" data-src="list" aria-pressed="true">Project list</button>
+        <button type="button" class="src" data-src="recent" aria-pressed="true">Recent</button>
+        <button type="button" class="src" data-src="local" aria-pressed="false">This computer</button>
+        <button type="button" class="src" data-src="github" aria-pressed="false">GitHub</button>
+      </div>
+      <div class="row" id="localRow" hidden><button type="button" id="pickDir">Choose a folder to search</button><span class="small" id="localS"></span></div>
+      <p class="small" id="findS"></p>
+      <div class="list" id="results"></div>
       <h3>From a link</h3>
       <form class="row" id="urlForm"><input type="url" id="url" placeholder="https://user.github.io/my-mechanism/my-mechanism.playground.json" aria-label="Bundle URL" required><button type="submit" class="primary">Load</button></form>
-      <h3>From this computer</h3>
+      <h3>From a file</h3>
       <div class="drop" id="drop">Drop a <code>.playground.json</code> file here, or <button type="button" id="pick">choose a file</button><input type="file" id="file" accept=".json,application/json" hidden></div>
-      <h3>Projects</h3>
-      <div class="list" id="projects"><p class="small">loading the list…</p></div>
-      <h3 id="recentH" hidden>Recent</h3>
-      <div class="list" id="recent"></div>
+      <h3>Set up your own model with AI</h3>
+      <p class="small">Give this to your AI assistant (Claude, ChatGPT, Copilot, ...) together with your CAD files. The guide it reads explains the playground from zero: <a href="https://cortylok.github.io/mechanism-playground/ai-guide.md" target="_blank" rel="noopener">AI guide</a>.</p>
+      <textarea id="aiPrompt" readonly rows="8" aria-label="Prompt for your AI assistant">I want an interactive, physics-based 3D playground of my mechanism.
+1. First read https://cortylok.github.io/mechanism-playground/ai-guide.md - it explains the tool, what to ask me, and the full procedure from CAD files to a working page.
+2. Then ask me what you need (CAD export, how it moves, springs / cylinders / motors, materials, what I want to test).
+3. Build it with https://github.com/cortylok/mechanism-playground, test it as the guide says, and tell me what you tested and what you did not.
+
+My mechanism: (describe it here)</textarea>
+      <div class="row"><button type="button" id="copyPrompt">Copy the prompt</button><span class="small" id="copyS"></span></div>
+      <p class="small">To make your model findable on GitHub: add the topic <code>mechanism-playground</code> to its repo, and commit its <code>.playground.json</code> or publish a <code>projects.json</code> on the repo's GitHub Pages site.</p>
     </div>
   </div>
 </main>
@@ -128,6 +150,7 @@ h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .0
   }
   window.addEventListener("message", (e) => {
     if (!frame || e.source !== frame.contentWindow || !e.data) return;
+    if (e.data.type === "mpg-open") { showPanel(true); $("q").focus(); return; }
     if (e.data.type === "mpg-ready" && pending) { frame.contentWindow.postMessage({ type: "mpg-bundle", bundle: pending }, "*"); pending = null; }
     else if (e.data.type === "mpg-loaded") status("loaded");
     else if (e.data.type === "mpg-error") status("error");
@@ -151,28 +174,110 @@ h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .0
     f.text().then((t) => { let b; try { b = JSON.parse(t); } catch (_) { error(f.name + " is not JSON."); return; } run(b, f.name, null); })
       .catch((err) => error("Could not read " + f.name + ": " + err.message));
   }
-  function item(listEl, x, onLoad) {
+  function item(listEl, x, onLoad, label) {
     const d = document.createElement("div"); d.className = "item";
     const b = document.createElement("b"); b.textContent = x.title || x.name || x.url;
-    const btn = document.createElement("button"); btn.type = "button"; btn.textContent = "Open"; btn.addEventListener("click", onLoad);
+    const btn = document.createElement("button"); btn.type = "button"; btn.textContent = label || "Open"; btn.addEventListener("click", onLoad);
     d.append(b, btn);
+    if (x.tag) { const t = document.createElement("span"); t.className = "tag"; t.textContent = x.tag; d.appendChild(t); }
     if (x.description) { const p = document.createElement("p"); p.textContent = x.description; d.appendChild(p); }
-    const s = document.createElement("span"); s.className = "src"; s.textContent = x.url + (x.builtin ? "" : x.author ? ` · by ${x.author}` : ""); d.appendChild(s);
+    if (x.url) { const s = document.createElement("span"); s.className = "src"; s.textContent = x.url + (x.author ? ` · by ${x.author}` : ""); d.appendChild(s); }
     listEl.appendChild(d);
+    return d;
   }
-  function renderRecent() {
-    const r = store.get("mpg.recent", []), el = $("recent"); el.replaceChildren(); $("recentH").hidden = !r.length;
-    for (const x of r) item(el, x, () => loadUrl(x.url));
-  }
+  function renderRecent() { find(); }
   async function loadList() {
-    const el = $("projects");
-    try {
-      const r = await fetch("projects.json"); if (!r.ok) throw new Error(r.status);
-      builtins = (await r.json()).projects || [];
-      el.replaceChildren(); for (const x of builtins) item(el, x, () => loadUrl(x.url));
-      if (!builtins.length) el.textContent = "No projects listed.";
-    } catch (_) { el.replaceChildren(); const p = document.createElement("p"); p.className = "small"; p.textContent = "No project list here (projects.json). Load a link or a file."; el.appendChild(p); }
+    try { const r = await fetch("projects.json"); if (!r.ok) throw new Error(r.status); builtins = (await r.json()).projects || []; }
+    catch (_) { builtins = []; }
   }
+  // ---------------------------------------------------------------- find a model: project list, recent, a local folder, GitHub
+  const SRC = { list: true, recent: true, local: false, github: false };
+  let localFiles = [], findN = 0;
+  const words = (q) => q.toLowerCase().split(/\s+/).filter(Boolean);
+  const match = (q, ...txt) => { const t = txt.join(" ").toLowerCase(); return words(q).every((w) => t.includes(w)); };
+  const findS = (t) => { $("findS").textContent = t; };
+  async function find(withGitHub) {
+    const q = $("q").value.trim(), el = $("results"), my = ++findN; el.replaceChildren(); let n = 0;
+    const add = (x, open, tag) => { item(el, Object.assign({}, x, { tag }), open); n++; };
+    if (SRC.list) for (const x of builtins) if (match(q, x.title || "", x.name || "", x.description || "")) add(x, () => loadUrl(x.url), "project list");
+    if (SRC.recent) for (const x of store.get("mpg.recent", [])) if (match(q, x.title || "", x.url)) add(x, () => loadUrl(x.url), "recent");
+    if (SRC.local) for (const f of localFiles) if (match(q, f.path)) add({ title: f.name.replace(/\.playground\.json$/i, ""), url: f.path }, async () => loadFile(await f.get()), "this computer");
+    findS(n ? `${n} found` + (SRC.github && withGitHub ? " · searching GitHub…" : "") : (SRC.github && withGitHub ? "searching GitHub…" : "nothing found here"));
+    if (SRC.github && withGitHub) {
+      try { const k = await findGitHub(q, el, my); if (my === findN) findS(`${n} found here · ${k} GitHub repo${k === 1 ? "" : "s"} (open one to see its models)`); }
+      catch (err) { if (my === findN) findS(err.message); }
+    }
+  }
+  async function gh(url) {
+    const r = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (r.status === 403 || r.status === 429) throw new Error("GitHub's limit for visitors is reached (about 10 searches a minute, 60 look-ups an hour). Try again in a minute.");
+    if (!r.ok) throw new Error(`GitHub answered ${r.status}`);
+    return r.json();
+  }
+  // repos tagged with the topic "mechanism-playground"; the query narrows them by name, description or README
+  async function findGitHub(q, el, my) {
+    const res = await gh(`https://api.github.com/search/repositories?q=${encodeURIComponent((q ? q + " " : "") + "topic:mechanism-playground")}&sort=updated&per_page=20`);
+    if (my !== findN) return 0;
+    for (const repo of res.items || []) {
+      let btn = null;
+      const d = item(el, { title: repo.full_name, description: repo.description || "", tag: "GitHub", url: repo.html_url }, async () => {
+        btn.disabled = true; btn.textContent = "Looking…";
+        const sub = document.createElement("div"); sub.className = "sub"; d.appendChild(sub);
+        try {
+          const models = await repoModels(repo);
+          if (!models.length) { const p = document.createElement("p"); p.className = "small"; p.textContent = "No .playground.json bundles found in this repo or on its Pages site."; sub.appendChild(p); }
+          for (const m of models) item(sub, m, () => loadUrl(m.url));
+          btn.textContent = `${models.length} model${models.length === 1 ? "" : "s"}`;
+        } catch (err) { const p = document.createElement("p"); p.className = "small"; p.textContent = err.message; sub.appendChild(p); btn.disabled = false; btn.textContent = "Show models"; }
+      }, "Show models");
+      btn = d.querySelector("button");
+    }
+    return (res.items || []).length;
+  }
+  // a repo's bundles: the projects.json its GitHub Pages site publishes, and .playground.json files committed to it
+  async function repoModels(repo) {
+    const out = [], seen = new Set(), push = (m) => { if (!seen.has(m.url)) { seen.add(m.url); out.push(m); } };
+    if (repo.has_pages) {
+      const owner = repo.owner.login.toLowerCase();
+      const base = repo.name.toLowerCase() === `${owner}.github.io` ? `https://${owner}.github.io/` : `https://${owner}.github.io/${repo.name}/`;
+      try {
+        const r = await fetch(base + "projects.json");
+        if (r.ok) for (const p of (await r.json()).projects || []) push({ title: p.title || p.name, description: p.description || "", url: new URL(p.url, base).href, author: p.author });
+      } catch (_) {}
+    }
+    const t = await gh(`https://api.github.com/repos/${repo.full_name}/git/trees/${encodeURIComponent(repo.default_branch)}?recursive=1`);
+    for (const e of t.tree || []) if (e.type === "blob" && /\.playground\.json$/i.test(e.path))
+      push({ title: e.path.split("/").pop().replace(/\.playground\.json$/i, ""), description: e.path, url: `https://raw.githubusercontent.com/${repo.full_name}/${repo.default_branch}/${e.path.split("/").map(encodeURIComponent).join("/")}` });
+    return out;
+  }
+  // this computer: every .playground.json in a chosen folder (Chrome / Edge); other browsers use the file picker below
+  async function walk(dirH, path, depth) {
+    if (depth > 5 || localFiles.length >= 500) return;
+    for await (const [name, h] of dirH.entries()) {
+      if (h.kind === "directory") { if (!name.startsWith(".") && name !== "node_modules") await walk(h, path + name + "/", depth + 1); }
+      else if (/\.playground\.json$/i.test(name)) localFiles.push({ name, path: path + name, get: () => h.getFile() });
+    }
+  }
+  $("pickDir").addEventListener("click", async () => {
+    if (!window.showDirectoryPicker) return;
+    let dirH; try { dirH = await window.showDirectoryPicker(); } catch (_) { return; }
+    localFiles = []; $("localS").textContent = "searching…";
+    await walk(dirH, dirH.name + "/", 0);
+    $("localS").textContent = `${localFiles.length} bundle${localFiles.length === 1 ? "" : "s"} in ${dirH.name}`; find();
+  });
+  for (const b of document.querySelectorAll(".src")) b.addEventListener("click", () => {
+    const k = b.dataset.src; SRC[k] = !SRC[k]; b.setAttribute("aria-pressed", String(SRC[k]));
+    $("localRow").hidden = !SRC.local;
+    if (!window.showDirectoryPicker) { $("pickDir").hidden = true; $("localS").textContent = "This browser cannot search a folder: use From a file below."; }
+    find(k === "github" && SRC.github);
+  });
+  $("findForm").addEventListener("submit", (e) => { e.preventDefault(); find(true); });
+  $("q").addEventListener("input", () => find(false));
+  $("copyPrompt").addEventListener("click", async () => {
+    const t = $("aiPrompt"); let ok = false;
+    try { await navigator.clipboard.writeText(t.value); ok = true; } catch (_) { t.select(); try { ok = document.execCommand("copy"); } catch (_) {} }
+    $("copyS").textContent = ok ? "copied" : "select the text and copy it";
+  });
   $("urlForm").addEventListener("submit", (e) => { e.preventDefault(); loadUrl($("url").value.trim()); });
   $("pick").addEventListener("click", () => $("file").click());
   $("file").addEventListener("change", () => loadFile($("file").files[0]));
@@ -184,8 +289,7 @@ h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .0
   document.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
   $("openPanel").addEventListener("click", () => showPanel($("panel").hidden));
   window.addEventListener("keydown", (e) => { if (e.key === "Escape" && frame && !$("panel").hidden) showPanel(false); });
-  renderRecent();
-  loadList().then(() => { const q = new URLSearchParams(location.search).get("project"); if (q) loadUrl(q); });
+  loadList().then(() => { find(); const q = new URLSearchParams(location.search).get("project"); if (q) loadUrl(q); });
 })();
 </script>
 </body>

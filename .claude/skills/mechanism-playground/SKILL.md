@@ -5,7 +5,7 @@ description: Turn a user's mechanism (CAD exports + joints, springs, struts, cyl
 
 # Mechanism playground: adapt it to a new mechanism
 
-Read `README.md` first (layout, commands). The working examples are the best reference:
+Read `AI_GUIDE.md` first (the full guide for AI assistants: procedure, contract, module APIs, tests, sharing, traps). The working examples are the best reference:
 `examples/starter` (one hinge DOF, gas strut, mass table), `examples/pneumatic-slide` (cylinder, valve, flow controls,
 cushions, page buttons and gauges), `examples/s3-side-table` (a full project with its own engine through `createSim`).
 

@@ -3,3 +3,6 @@ trimesh
 fast-simplification
 scipy
 pillow
+shapely
+manifold3d
+mapbox-earcut

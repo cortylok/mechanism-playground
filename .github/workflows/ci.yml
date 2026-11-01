@@ -32,7 +32,8 @@ jobs:
       - name: Assemble the site
         run: |
           mkdir -p site
-          cp docs/index.html site/
+          cp docs/index.html docs/llms.txt site/
+          cp AI_GUIDE.md site/ai-guide.md
           cp dist/*.html dist/*.playground.json dist/projects.json site/
           rm -f site/*.artifact.html
       - uses: actions/upload-pages-artifact@v3

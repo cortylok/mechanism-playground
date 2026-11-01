@@ -32,6 +32,10 @@ claude
 The repo ships a project skill (`.claude/skills/mechanism-playground/`) with the plug-in contract, a recipe per module
 and the traps found so far. Claude writes the mechanism plug-in and its tests, builds the page and checks it.
 
+## With any AI assistant
+
+Give your assistant this guide: <https://cortylok.github.io/mechanism-playground/ai-guide.md> (`AI_GUIDE.md` here). It explains the playground from zero, what to ask you, and the full procedure from CAD files to a tested page. The player has a ready-to-copy prompt ("Set up your own model with AI"). `CLAUDE.md` and `AGENTS.md` point coding agents to the guide when they open this repo.
+
 ## Quick start by hand
 
 1. Copy `examples/starter` to `projects/<name>`.
