@@ -95,6 +95,9 @@ def pack(project):
                           motion=p.get("motion"), info=p.get("info"), mesh=enc(t), **props))
     groups = spec.get("groups") or [{"key": g, "label": g} for g in dict.fromkeys(q["group"] for q in parts)]
     data = dict(name=spec.get("name", os.path.basename(os.path.abspath(project))), units="mm", groups=groups, parts=parts)
+    for k, v in spec.items():                                        # extra keys (e.g. "geometry") pass through to the page
+        if k not in ("parts", "groups", "name"):
+            data[k] = v
     os.makedirs(os.path.join(project, "out"), exist_ok=True)
     s = json.dumps(data, separators=(",", ":"))
     open(os.path.join(project, "out", "data.json"), "w", encoding="utf-8").write(s)

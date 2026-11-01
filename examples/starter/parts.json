@@ -1,0 +1,116 @@
+{
+ "name": "starter",
+ "groups": [
+  {
+   "key": "box",
+   "label": "Box",
+   "colour": "#c8a46e"
+  },
+  {
+   "key": "lid",
+   "label": "Lid",
+   "colour": "#b98a55"
+  },
+  {
+   "key": "strut",
+   "label": "Gas strut",
+   "colour": "#3d4247"
+  }
+ ],
+ "parts": [
+  {
+   "id": "box",
+   "stl": "meshes/box.stl",
+   "group": "box",
+   "label": "Box (12 mm ply)",
+   "density": 0.6,
+   "info": {
+    "kind": "Fixed",
+    "rows": [
+     [
+      "Size",
+      "400 x 300 x 200 mm"
+     ],
+     [
+      "Material",
+      "12 mm plywood"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "lid",
+   "stl": "meshes/lid.stl",
+   "group": "lid",
+   "label": "Lid",
+   "density": 2.08,
+   "info": {
+    "kind": "Moving: hinge",
+    "rows": [
+     [
+      "Hinge",
+      "back top edge (y +150, z 200)"
+     ],
+     [
+      "Mass",
+      "3 kg with fittings (density set to suit)"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "strut-body",
+   "stl": "meshes/strut-body.stl",
+   "group": "strut",
+   "label": "Strut body",
+   "info": {
+    "kind": "Gas strut",
+    "rows": [
+     [
+      "Length",
+      "300 extended, 130 stroke"
+     ],
+     [
+      "Lower pivot",
+      "[170.0, 100.0, 60.0]"
+     ]
+    ]
+   }
+  },
+  {
+   "id": "strut-rod",
+   "stl": "meshes/strut-rod.stl",
+   "group": "strut",
+   "label": "Strut rod",
+   "info": {
+    "kind": "Gas strut",
+    "rows": [
+     [
+      "Upper pivot (lid)",
+      "[170.0, 0.0, 200.0]"
+     ]
+    ]
+   }
+  }
+ ],
+ "geometry": {
+  "A": [
+   170.0,
+   100.0,
+   60.0
+  ],
+  "B": [
+   170.0,
+   0.0,
+   200.0
+  ],
+  "hinge": [
+   0.0,
+   150.0,
+   200.0
+  ],
+  "ext": 300.0,
+  "stroke": 130.0,
+  "L0": 172.04650534085255
+ }
+}

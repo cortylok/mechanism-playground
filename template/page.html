@@ -1,0 +1,1205 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #e9ecea; --panel: #f8f9f7; --ink: #1b2023; --muted: #5a6368; --line: #d0d5d2; --accent: #2d5a84; --scene: #dfe3e1;
+  --good: #2f7d4f; --warn: #b26b12; --bad: #c4322a;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #14181a; --panel: #1c2124; --ink: #e4e8e6; --muted: #98a2a6; --line: #30393d;
+    --accent: #79a6d2; --scene: #23292c; --good: #5cc28a; --warn: #e3a24a; --bad: #ff6a5c; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #14181a; --panel: #1c2124; --ink: #e4e8e6; --muted: #98a2a6; --line: #30393d;
+  --accent: #79a6d2; --scene: #23292c; --good: #5cc28a; --warn: #e3a24a; --bad: #ff6a5c; color-scheme: dark; }
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html, body { height: 100%; overscroll-behavior: none; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--f-body); overflow: hidden; }
+.app { position: fixed; inset: 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; }
+#stage { position: relative; min-width: 0; background: var(--scene); touch-action: none; }
+#stage canvas.gl { display: block; width: 100%; height: 100%; touch-action: none; }
+.hint { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  right: 12px; font: 12px var(--f-mono); color: var(--muted); pointer-events: none; }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; font: 13px var(--f-mono); color: var(--muted); padding: 24px; text-align: center; }
+.hud { position: absolute; top: 10px; left: max(12px, env(safe-area-inset-left, 0px)); pointer-events: none; max-width: calc(100% - 80px);
+  font: 500 13px var(--f-mono); background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line);
+  border-radius: 6px; padding: 6px 10px; font-variant-numeric: tabular-nums; }
+.hud b { font: 700 20px var(--f-display); letter-spacing: .02em; }
+.hud .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.gauges { display: grid; grid-template-columns: auto 90px auto; gap: 3px 8px; align-items: center; margin-top: 6px; font: 12px var(--f-mono); }
+.gauges .bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.gauges .bar i { display: block; height: 100%; background: var(--accent); }
+aside { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+  padding-block: 0 max(16px, env(safe-area-inset-bottom, 0px)); padding-left: 16px; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font: 700 26px/1 var(--f-display); margin: 0; letter-spacing: .01em; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+h2 { font: 600 13px var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+button { font: 500 13px var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px;
+  padding: 6px 8px; cursor: pointer; min-height: 32px; }
+button:hover { border-color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+aside > *, details.pan > * { min-width: 0; }
+aside button { min-width: 0; overflow-wrap: anywhere; }
+.views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.aside-top { display: flex; align-items: flex-start; gap: 8px; position: sticky; top: 0; z-index: 3; background: var(--panel);
+  padding: 16px 0 8px; box-shadow: -16px 0 0 var(--panel), 16px 0 0 var(--panel); }
+.aside-top h1 { flex: 1; }
+.menu-btn, .aside-close { display: none; }
+.scrim { position: fixed; inset: 0; z-index: 19; background: rgb(0 0 0 / .35); }
+.groups { display: grid; grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 1fr)); gap: 4px 4px; align-items: center; }
+.groups .gl { display: flex; align-items: center; gap: 6px; font-size: 12.5px; line-height: 1.15; min-width: 0; }
+.groups button { padding: 3px 1px; font-size: 11.5px; min-height: 28px; line-height: 1.1; overflow-wrap: anywhere; }
+.groups .gall { font-weight: 600; }
+.sw { width: 11px; height: 11px; border-radius: 3px; flex: none; border: 1px solid var(--line); }
+.note { font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; white-space: pre-line; }
+.readout { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font: 13px var(--f-mono); font-variant-numeric: tabular-nums; margin-bottom: 8px; }
+.readout span:nth-child(odd) { color: var(--muted); }
+.row2 { display: flex; gap: 6px; flex-wrap: wrap; }
+.speed { display: flex; gap: 4px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.speed button { padding: 4px 6px; min-height: 30px; flex: 1 1 0; min-width: 0; text-align: center; }
+.chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font: 600 12px var(--f-body); border: 1px solid var(--line); color: var(--muted); }
+.chip.on { background: var(--good); border-color: var(--good); color: var(--panel); }
+.inset { position: absolute; left: max(12px, env(safe-area-inset-left, 0px)); bottom: 34px; width: 210px; pointer-events: none;
+  background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+.inset canvas { display: block; width: 196px; height: 230px; }
+.inset .lt { font: 11px var(--f-mono); color: var(--muted); }
+@media (max-width: 720px) { .inset { width: 150px; } .inset canvas { width: 136px; height: 160px; } }
+.flash { position: absolute; top: 10px; right: 12px; pointer-events: none; font: 700 18px var(--f-display); letter-spacing: .04em;
+  color: var(--accent); opacity: 0; transition: opacity .5s; }
+.flash.on { opacity: 1; transition: none; }
+.err { position: absolute; left: 12px; right: 12px; bottom: 40px; z-index: 7; background: var(--panel); border: 2px solid var(--bad); border-radius: 8px; padding: 10px 12px; font: 13px var(--f-mono); white-space: pre-wrap; }
+details.pan { border: 1px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--bg) 45%, var(--panel)); padding-inline: 12px; min-width: 0; }
+details.pan > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 9px 12px; min-height: 40px; margin-inline: -12px;
+  font: 600 13px var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink); user-select: none; }
+details.pan > summary::-webkit-details-marker { display: none; }
+details.pan > summary::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg); transition: transform .15s; flex: none; }
+details.pan[open] > summary::before { transform: rotate(45deg); }
+details.pan > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 8px; }
+details.pan[open] { padding-bottom: 12px; }
+details.pan > :not(summary) + :not(summary) { margin-top: 8px; }
+details.pan input { max-width: 100%; }
+h3 { font: 600 12px var(--f-mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 0 6px; }
+details.pan > summary + h3 { margin-top: 2px; }
+.pal { display: grid; gap: 4px; }
+.pc { display: grid; grid-template-columns: 34px minmax(0, 1fr) 44px; gap: 6px; align-items: center; }
+.pc .pchip { min-height: 30px; padding: 0; border-width: 2px; }
+.pc .pchip[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pc input { width: 100%; font: 13px var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.pc .n { font: 12px var(--f-mono); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.seg4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; flex: 1; min-width: 0; }
+.seg4 button { padding: 4px 2px; font-size: 12px; }
+#stage.painting canvas.gl { cursor: cell; }
+#stage.marking canvas.gl { cursor: crosshair; }
+details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.set { display: grid; grid-template-columns: minmax(0, 1fr) 72px; gap: 6px 8px; align-items: center; margin: 10px 0; font-size: 13px; }
+.set input { width: 100%; font: 13px var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
+.small { font-size: 12px; color: var(--muted); }
+.secb { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-bottom: 4px; }
+.mc span { display: inline-block; width: 16px; height: 16px; border-radius: 50%; vertical-align: middle; }
+.note-in { width: 100%; font: 13px var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; margin: 2px 0 6px; }
+.secs input[type=range].wide { grid-column: 1 / -1; width: 100%; margin: -2px 0 4px; }
+.card { position: absolute; z-index: 5; width: min(340px, calc(100% - 24px)); max-height: calc(100% - 24px); overflow: hidden; display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 28px rgb(0 0 0 / .22); padding: 0; font-size: 13px; }
+.card .ct { display: flex; gap: 8px; align-items: flex-start; flex: none; padding: 12px 14px 6px; }
+.card .cb { overflow-y: auto; min-height: 0; padding: 0 14px 12px; }
+.card .ca { flex: none; padding: 0 14px 8px; }
+.card .op { display: grid; grid-template-columns: auto minmax(0, 1fr) 40px; gap: 8px; align-items: center; margin: 0 0 8px; font: 12px var(--f-mono); color: var(--muted); }
+.card .op input { width: 100%; margin: 0; }
+.card .op span:last-child { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+.card .pm { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0 0 8px; }
+.card .pm button { font-size: 12px; min-height: 30px; padding: 3px 4px; }
+.card h3 { font: 700 19px/1.1 var(--f-display); margin: 0; flex: 1; letter-spacing: .01em; text-transform: none; color: var(--ink); }
+.card .x { min-height: 28px; padding: 2px 9px; font-size: 16px; line-height: 1; }
+.card .pn { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.card .pn span { font: 600 12px var(--f-mono); border: 1px solid var(--line); border-radius: 10px; padding: 1px 8px; color: var(--muted); }
+.card .pn span.k { color: var(--panel); background: var(--accent); border-color: var(--accent); }
+.card dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 3px 10px; margin: 0 0 8px; }
+.card dt { color: var(--muted); font: 12px var(--f-mono); padding-top: 1px; }
+.card dd { margin: 0; overflow-wrap: anywhere; }
+.card ol { margin: 4px 0 8px; padding-left: 20px; font: 12px/1.5 var(--f-mono); }
+.card ol li.me { color: var(--accent); font-weight: 600; }
+.card .cn { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+.card .row2 button { font-size: 12px; min-height: 28px; padding: 3px 8px; }
+.pill { position: absolute; z-index: 6; display: flex; align-items: center; gap: 4px; max-width: min(320px, calc(100% - 24px));
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgb(0 0 0 / .22); padding: 4px 4px 4px 10px; }
+.pill .pt { flex: 1; min-width: 0; font: 600 13px/1.2 var(--f-body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pill .pc2 { font: 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
+.pill button { flex: none; width: 34px; min-height: 34px; padding: 0; display: grid; place-items: center; font-size: 17px; line-height: 1; }
+.pill svg { width: 16px; height: 16px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 720px) {
+  .card { left: 12px !important; right: 12px; top: auto !important; bottom: 10px; width: auto; max-height: 62%; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  aside { position: fixed; top: 0; right: 0; bottom: 0; z-index: 20; width: min(340px, 88vw); gap: 8px; padding-top: 0; box-shadow: -8px 0 28px rgb(0 0 0 / .3);
+    transform: translateX(105%); visibility: hidden; transition: transform .22s ease, visibility 0s linear .22s; }
+  body.menu-open aside { transform: none; visibility: visible; transition: transform .22s ease; }
+  h1 { font-size: 22px; }
+  .menu-btn { display: grid; place-items: center; position: absolute; z-index: 6; top: max(10px, env(safe-area-inset-top, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px)); width: 44px; height: 44px; padding: 0; border-radius: 10px;
+    background: color-mix(in srgb, var(--panel) 88%, transparent); }
+  .menu-btn svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; }
+  .aside-close { display: block; min-width: 40px; min-height: 40px; padding: 0; font-size: 20px; line-height: 1; }
+  .aside-top { padding-top: max(12px, env(safe-area-inset-top, 0px)); }
+  .flash { top: 62px; }
+  .hint { display: none; }
+}
+</style>
+
+<div class="app">
+  <div id="stage">
+    <div class="loading" id="loading">Loading the project…</div>
+    <div class="hud" id="hud" hidden><b id="hudBig"></b> &nbsp;<span id="hudState"></span>
+      <div class="chips" id="chips"></div><div class="gauges" id="gauges" hidden></div></div>
+    <div class="flash" id="flash"></div>
+    <div class="inset" id="inset" hidden><div class="lt" id="insetT"></div><canvas id="insetC"></canvas><div class="lt" id="insetS"></div></div>
+    <div class="card" id="card" hidden role="dialog" aria-labelledby="cardt"></div>
+    <div class="pill" id="pill" hidden role="dialog" aria-labelledby="pillt"><span class="pt" id="pillt"></span><span class="pc2" id="pilln"></span>
+      <button type="button" id="pillx" aria-label="Show its full info"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></button>
+      <button type="button" id="pillc" aria-label="Close">×</button></div>
+    <div class="err" id="err" hidden></div>
+    <div class="hint" id="hint">Tap or click a part for its specs · grab a moving part and push or pull · two fingers or right-drag: rotate · pinch or wheel: zoom to the pointer</div>
+    <button type="button" class="menu-btn" id="menuBtn" aria-label="Show options" aria-expanded="false" aria-controls="side">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+  </div>
+  <div class="scrim" id="scrim" hidden></div>
+  <aside id="side">
+    <div class="aside-top"><h1 id="title">__TITLE__</h1>
+      <button type="button" class="aside-close" id="sideClose" aria-label="Close options">×</button></div>
+    <details class="pan" data-k="speed" open>
+      <summary>Speed</summary>
+      <div class="speed" role="group" aria-label="Simulation speed" id="speedB"></div>
+      <div class="row2" id="resets"></div>
+    </details>
+    <details class="pan" data-k="controls" id="controlsPan" hidden open>
+      <summary>Controls</summary>
+      <div class="row2" id="buttons"></div>
+    </details>
+    <details class="pan" data-k="view" open>
+      <summary>View</summary>
+      <div class="views" id="views"></div>
+    </details>
+    <details class="pan" data-k="paint">
+      <summary>Paint</summary>
+      <h3>Marker: lines</h3>
+      <div class="secb"><button type="button" id="markOn" aria-pressed="false">Marker off</button>
+        <button type="button" data-mc="#e0312b" aria-pressed="true" aria-label="Red" class="mc"><span style="background:#e0312b"></span></button>
+        <button type="button" data-mc="#1f6fe0" aria-label="Blue" class="mc"><span style="background:#1f6fe0"></span></button>
+        <button type="button" data-mc="#18a058" aria-label="Green" class="mc"><span style="background:#18a058"></span></button></div>
+      <input type="text" id="markNote" class="note-in" placeholder="What the line means (optional)" maxlength="200">
+      <div class="row2"><button type="button" id="markTop" aria-pressed="false">Lines on top: off</button><button type="button" id="markUndo">Undo last line</button><button type="button" id="markClear">Clear this visit's lines</button><button type="button" id="markAll">Clear all lines</button></div>
+      <p class="small" id="markS">loading…</p>
+      <p class="small">Marker on: left-drag or one finger draws on any visible surface (also on a section cut). Right-drag or two fingers rotate, wheel or pinch zooms.</p>
+      <h3>Paint: surface areas</h3>
+      <button type="button" id="paintOn" aria-pressed="false">Paint off</button>
+      <div class="pal" id="pal"></div>
+      <div class="row2">
+        <button type="button" id="eraser" aria-pressed="false">Eraser</button>
+        <div class="seg4" role="group" aria-label="Brush size">
+          <button type="button" data-brush="0">1 tri</button><button type="button" data-brush="2" aria-pressed="true">2 mm</button>
+          <button type="button" data-brush="5">5 mm</button><button type="button" data-brush="10">10 mm</button>
+        </div>
+      </div>
+      <div class="row2"><button type="button" id="clearc">Clear this colour</button></div>
+      <p class="small" id="paintS">loading…</p>
+      <p class="small">Pick a colour, type what it marks, then paint. The brush stays on faces that look the same way, so it does not bleed through thin walls.</p>
+    </details>
+    <details class="pan" data-k="section">
+      <summary>Section view</summary>
+      <div class="secb"><button type="button" id="secOn" aria-pressed="false">Off</button><button type="button" data-sb="front">Front</button><button type="button" data-sb="top">Top</button><button type="button" data-sb="right">Right</button></div>
+      <div class="set secs">
+        <label for="secOffN">Offset <span class="small" id="secOffL"></span></label><input type="number" id="secOffN" step="0.5">
+        <input type="range" id="secOff" step="0.5" class="wide" aria-label="Offset">
+        <label for="secAN" id="secAL">Tilt A °</label><input type="number" id="secAN" step="1" min="-90" max="90">
+        <input type="range" id="secA" min="-90" max="90" step="1" value="0" class="wide" aria-label="Tilt A">
+        <label for="secBN" id="secBL">Tilt B °</label><input type="number" id="secBN" step="1" min="-90" max="90">
+        <input type="range" id="secB" min="-90" max="90" step="1" value="0" class="wide" aria-label="Tilt B">
+      </div>
+      <div class="row2"><button type="button" id="secFlip">Flip side</button><button type="button" id="secCaps" aria-pressed="true">Hatched cut faces</button><button type="button" id="secShow" aria-pressed="false">Show plane</button></div>
+      <p class="small" id="secv">off</p>
+    </details>
+    <details class="pan" data-k="bodies">
+      <summary>Bodies</summary>
+      <div class="row2"><button type="button" id="bAll">Show all</button></div>
+      <button type="button" id="bOwn" hidden></button>
+      <div class="groups" id="groups"></div>
+    </details>
+    <details class="pan" data-k="info" open>
+      <summary>Info</summary>
+      <div class="readout" id="readout"></div>
+      <p class="sub" id="desc"></p>
+      <details class="settings" id="setPan">
+        <summary>Settings (model values)</summary>
+        <div class="set" id="settings"></div>
+        <button type="button" id="design">Design values</button>
+      </details>
+      <div id="notes"></div>
+    </details>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>/*__PHYSICS__*/</script>
+<script>window.MPG_BUNDLE = /*__BUNDLE__*/null;</script>
+<script>
+// Mechanism playground page. One boot per page: the bundle is inlined (standalone / artifact) or posted by the player.
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const fail = (msg) => { $("loading").hidden = true; const e = $("err"); e.hidden = false; e.textContent = msg; post({ type: "mpg-error", message: msg }); };
+  const post = (m) => { try { if (window.parent !== window) window.parent.postMessage(m, "*"); } catch (_) {} };
+  let booted = false;
+  function start(bundle) {
+    if (booted) return; booted = true;
+    try { boot(bundle); } catch (err) { fail("Could not start the project: " + (err && err.message || err)); console.error(err); }
+  }
+  window.addEventListener("message", (e) => { if (e.data && e.data.type === "mpg-bundle") start(e.data.bundle); });
+  if (window.MPG_BUNDLE) setTimeout(() => start(window.MPG_BUNDLE), 0); else post({ type: "mpg-ready" });
+
+  function boot(B) {
+    const chk = window.BUNDLE.check(B);
+    if (chk) throw new Error(chk);
+    if (!window.THREE) throw new Error("The 3D library did not load. Check the internet connection and reload.");
+    const D = B.data, CFG = B.config || {};
+    const M = window.BUNDLE.makeMech(B);
+    const sim = window.CORE.create(M);
+    const slug = (B.name || "project").toLowerCase().replace(/[^a-z0-9_]+/g, "_");
+    document.title = B.title || B.name; $("title").textContent = B.title || B.name;
+    if (CFG.description) $("desc").textContent = CFG.description;
+    for (const t of CFG.notes || []) { const n = document.createElement("div"); n.className = "note"; n.textContent = t; $("notes").appendChild(n); }
+    if (CFG.hint) $("hint").textContent = CFG.hint;
+    run(B, D, CFG, M, sim, slug);
+  }
+
+  function run(B, D, CFG, M, sim, slug) {
+    const stage = $("stage");
+    const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    renderer.domElement.className = "gl";
+    stage.appendChild(renderer.domElement);
+    const el = renderer.domElement;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.5, 8000);
+    camera.up.set(0, 0, 1);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f94, 0.75));
+    const head = new THREE.DirectionalLight(0xffffff, 0.75);
+    scene.add(head);
+    const gi = sim.grabDof.dof, unit = M.dofs[gi].unit || "mm";
+
+    // ---------------------------------------------------------------- groups + materials
+    const PALETTE = [0xa9bccc, 0xc9ccc8, 0xb08d57, 0x5c6670, 0x8fa3b5, 0x5f86ad, 0x4f8a5b, 0x3d4247, 0x7d858c, 0xc8a46e, 0xd0452f, 0xc2a54a];
+    const hex = (c, i) => (typeof c === "string" ? parseInt(c.replace("#", ""), 16) : c != null ? c : PALETTE[i % PALETTE.length]);
+    const GROUPS = (D.groups || []).map((g, i) => [g.key, g.label || g.key, hex(g.colour, i), g.mode || "solid"]);
+    for (const p of D.parts) if (!GROUPS.some((g) => g[0] === p.group)) GROUPS.push([p.group, p.group, PALETTE[GROUPS.length % PALETTE.length], "solid"]);
+    const mode = {}, MAT = {};
+    for (const [g, , col, m] of GROUPS) {
+      mode[g] = m;
+      MAT[g] = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, metalness: 0.05, flatShading: true });
+    }
+    // ---------------------------------------------------------------- section view: one global cut plane, hatched caps per
+    // group by the stencil method (back faces +1, front faces -1, cap where the count is not 0)
+    const SEC = { on: false, base: "top", off: 0, a: 0, b: 0, flip: false, caps: true, show: false, peek: 0,
+      plane: new THREE.Plane(new THREE.Vector3(0, 0, -1), 0), C: new THREE.Vector3() };
+    const BASES = { front: { n: [0, 1, 0], u: [1, 0, 0], v: [0, 0, 1], k: 1 }, top: { n: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0], k: 2 },
+      right: { n: [1, 0, 0], u: [0, 1, 0], v: [0, 0, 1], k: 0 } };
+    let modelSize = 500;
+    const hatchTex = (() => {
+      const c = document.createElement("canvas"); c.width = c.height = 64; const g = c.getContext("2d");
+      g.fillStyle = "#fff"; g.fillRect(0, 0, 64, 64); g.strokeStyle = "rgba(0,0,0,.55)"; g.lineWidth = 5;
+      for (let i = -64; i <= 128; i += 32) { g.beginPath(); g.moveTo(i, 64); g.lineTo(i + 64, 0); g.stroke(); }
+      const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+    })();
+    const capRoot = new THREE.Group(), caps = {}, stencils = [];
+    scene.add(capRoot);
+    const planeViz = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x3d7bd9, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+    planeViz.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(1, 1)), new THREE.LineBasicMaterial({ color: 0x3d7bd9 })));
+    capRoot.add(planeViz);
+    function buildCaps() {
+      const S = modelSize * 8; hatchTex.repeat.set(S / 4, S / 4);
+      GROUPS.forEach(([g, , col], k) => {
+        const mk = (side, op) => new THREE.MeshBasicMaterial({ side, colorWrite: false, depthWrite: false, depthTest: false, stencilWrite: true,
+          stencilFunc: THREE.AlwaysStencilFunc, stencilFail: op, stencilZFail: op, stencilZPass: op });
+        const back = mk(THREE.BackSide, THREE.IncrementWrapStencilOp), front = mk(THREE.FrontSide, THREE.DecrementWrapStencilOp);
+        for (const o of objs.filter((q) => q.g === g)) for (const m of [back, front]) {
+          const s = new THREE.Mesh(o.mesh.geometry, m); s.renderOrder = 10 + k * 3; s.visible = false; o.mesh.add(s); stencils.push({ s, o });
+        }
+        const cm = new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(0.85), map: hatchTex, side: THREE.DoubleSide, stencilWrite: true, stencilRef: 0,
+          stencilFunc: THREE.NotEqualStencilFunc, stencilFail: THREE.ReplaceStencilOp, stencilZFail: THREE.ReplaceStencilOp, stencilZPass: THREE.ReplaceStencilOp, depthWrite: false });
+        const cap = new THREE.Mesh(new THREE.PlaneGeometry(S, S), cm);
+        cap.renderOrder = 11 + k * 3; cap.onAfterRender = (r) => r.clearStencil(); cap.visible = false;
+        capRoot.add(cap); caps[g] = cap;
+      });
+    }
+    const rot = (v, ax, ang) => v.clone().applyAxisAngle(ax, ang);
+    function updateSection() {
+      const Bs = BASES[SEC.base], n0 = new THREE.Vector3(...Bs.n), u = new THREE.Vector3(...Bs.u), v = new THREE.Vector3(...Bs.v);
+      const n = rot(rot(n0, u, THREE.MathUtils.degToRad(SEC.a)), v, THREE.MathUtils.degToRad(SEC.b)).normalize();
+      const P = SEC.C.clone().addScaledVector(n0, SEC.off);
+      if (SEC.flip) n.negate();
+      SEC.plane.setFromNormalAndCoplanarPoint(n, P);
+      renderer.clippingPlanes = SEC.on ? [SEC.plane] : [];
+      const q = P.clone().addScaledVector(n, 0.02);
+      const solidG = new Set(objs.filter((o) => pmode(o) === "solid").map((o) => o.g));
+      for (const g in caps) { caps[g].position.copy(q); caps[g].lookAt(q.clone().add(n)); caps[g].visible = SEC.on && SEC.caps && solidG.has(g); }
+      for (const { s, o } of stencils) s.visible = SEC.on && SEC.caps && pmode(o) === "solid";
+      planeViz.position.copy(q); planeViz.lookAt(q.clone().add(n)); planeViz.scale.set(modelSize * 1.2, modelSize * 1.2, 1);
+      planeViz.visible = SEC.on && (SEC.show || performance.now() < SEC.peek);
+      $("secv").textContent = SEC.on ? `through (${P.x.toFixed(1)}, ${P.y.toFixed(1)}, ${P.z.toFixed(1)}) · normal (${n.x.toFixed(2)}, ${n.y.toFixed(2)}, ${n.z.toFixed(2)})` : "off";
+      dirty = true;
+    }
+    const live = (q) => !(SEC.on && SEC.plane.distanceToPoint(q.point) < 0);    // a hit on a clipped face does not count
+    const pmode = (o) => o.pm || mode[o.g];
+    function setMat(m, md) {
+      const x = md === "xray";
+      m.transparent = x; m.opacity = x ? (m.userData.opac != null ? m.userData.opac : 0.3) : 1; m.depthWrite = !x; m.needsUpdate = true;
+    }
+    function clearOwn(gs) { for (const o of objs) if (o.pm && (!gs || gs.includes(o.g))) o.pm = null; }
+    function applyModes() {
+      for (const [g] of GROUPS) for (const m of matsOf[g] || []) setMat(m, mode[g]);
+      for (const o of objs) if (o.own) setMat(sel === o ? o.base : o.mesh.material, pmode(o));
+      for (const o of objs) o.mesh.visible = pmode(o) !== "off" && !(iso && !iso.has(o));
+      if (sel) { syncHi(); renderCard(sel); }
+      if (stencils.length) updateSection();
+      document.querySelectorAll("[data-g]").forEach((b) => b.setAttribute("aria-pressed", String(mode[b.dataset.g] === b.dataset.m)));
+      document.querySelectorAll("[data-all]").forEach((b) => b.setAttribute("aria-pressed", String(GROUPS.every(([g]) => mode[g] === b.dataset.all))));
+      const own = objs.filter((o) => o.pm).length, ob = $("bOwn");
+      ob.hidden = !own; ob.textContent = `Reset ${own} part${own === 1 ? "" : "s"} set on their own cards`;
+      const allOff = objs.length > 0 && objs.every((o) => pmode(o) === "off");
+      EDGE.root.visible = allOff; if (allOff) buildEdges();
+      dirty = true;
+    }
+    // ---------------------------------------------------------------- outline when every body is off
+    const EDGE = { root: new THREE.Group(), lines: [], state: 0 };
+    EDGE.root.visible = false; scene.add(EDGE.root);
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0x8a9196, transparent: true, opacity: 0.6, depthWrite: false });
+    async function buildEdges() {
+      if (EDGE.state) return; EDGE.state = 1;
+      let t0 = performance.now();
+      for (const o of objs) {
+        const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.mesh.geometry, 30), edgeMat);
+        e.matrixAutoUpdate = false; EDGE.lines.push({ e, o }); EDGE.root.add(e);
+        if (performance.now() - t0 > 40) { dirty = true; await new Promise((r) => setTimeout(r, 0)); t0 = performance.now(); }
+      }
+      EDGE.state = 2; dirty = true;
+    }
+    function syncEdges() { if (EDGE.root.visible) for (const { e, o } of EDGE.lines) { e.matrix.copy(o.mesh.matrix); e.matrixWorldNeedsUpdate = true; } }
+
+    // ---------------------------------------------------------------- parts + poses (the mechanism's pose() gives each moving
+    // part a 4x4 matrix, column-major; parts it leaves out stay where the CAD put them)
+    const objs = [], byId = {}, matsOf = {};
+    async function geom(m) {
+      const { position, index } = await window.BUNDLE.decodeMesh(m);
+      let g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(position, 3));
+      g.setIndex(new THREE.BufferAttribute(index, 1));
+      g = g.toNonIndexed(); g.computeVertexNormals(); g.computeBoundingSphere();
+      return g;
+    }
+    function pose() {
+      const P = M.pose ? M.pose(sim) : null;
+      if (!P) return;
+      for (const id in P) { const o = byId[id]; if (!o) continue; o.mesh.matrix.fromArray(P[id]); o.mesh.matrixWorldNeedsUpdate = true; }
+      dirty = true;
+    }
+
+    // ---------------------------------------------------------------- camera (z up)
+    const cam = { tx: 0, ty: 0, tz: 0, r: 500, th: -2.3, ph: 0.32 };
+    let VIEWS = {};
+    function setView(k) {
+      const v = VIEWS[k]; if (!v) return;
+      [cam.tx, cam.ty, cam.tz] = v.t; cam.r = v.r; cam.th = v.th; cam.ph = v.ph;
+      if (v.modes) { Object.assign(mode, v.modes); clearOwn(); applyModes(); }
+      document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === k)));
+      dirty = true;
+    }
+    function placeCamera() {
+      const c = Math.cos(cam.ph);
+      camera.position.set(cam.tx + cam.r * c * Math.cos(cam.th), cam.ty + cam.r * c * Math.sin(cam.th), cam.tz + cam.r * Math.sin(cam.ph));
+      camera.lookAt(cam.tx, cam.ty, cam.tz);
+      head.position.copy(camera.position);
+      camera.near = Math.max(0.3, cam.r / 400); camera.far = cam.r * 20; camera.updateProjectionMatrix();
+    }
+    function resize() {
+      const w = stage.clientWidth, h = stage.clientHeight;
+      renderer.setSize(w, h, false); camera.aspect = w / Math.max(1, h); camera.updateProjectionMatrix(); dirty = true;
+    }
+
+    // ---------------------------------------------------------------- input: one finger / left acts, two fingers / right rotate
+    const ray = new THREE.Raycaster();
+    let dirty = true, hold = null;
+    const ndc = (cx, cy) => { const r = el.getBoundingClientRect(); return { x: ((cx - r.left) / r.width) * 2 - 1, y: -((cy - r.top) / r.height) * 2 + 1 }; };
+    const H = M.hand || {};
+    const grabbable = (o) => (H.parts ? H.parts.includes(o.p.id) : H.groups ? H.groups.includes(o.g) : true);
+    const val = (x) => (typeof x === "function" ? x(sim) : x);
+    function pickGrab(cx, cy) {
+      scene.updateMatrixWorld(); ray.setFromCamera(ndc(cx, cy), camera);
+      const cand = objs.filter((o) => o.mesh.visible && pmode(o) === "solid").map((o) => o.mesh);
+      const hit = ray.intersectObjects(cand, false).filter(live)[0];
+      return hit && grabbable(hit.object.userData.o) ? hit : null;
+    }
+    // screen px per unit of the grabbed DOF at the grabbed point: a 1 mm step along the hand axis, or a 1 deg turn about it
+    function pxPerUnit(point) {
+      const p1 = point.clone();
+      if (unit === "deg") {
+        const piv = new THREE.Vector3(...val(H.pivot || [0, 0, 0])), ax = new THREE.Vector3(...val(H.axis || [0, 0, 1])).normalize();
+        p1.sub(piv).applyAxisAngle(ax, Math.PI / 180).add(piv);
+      } else p1.add(new THREE.Vector3(...val(H.axis || [0, 0, 1])).normalize());
+      const a = point.clone().project(camera), b = p1.project(camera), r = el.getBoundingClientRect();
+      const dx = (b.x - a.x) * r.width / 2, dy = -(b.y - a.y) * r.height / 2, n = Math.hypot(dx, dy);
+      return n < 0.05 ? { ux: 0, uy: -1, n: 0.05 } : { ux: dx / n, uy: dy / n, n };
+    }
+    function startHold(cx, cy) {
+      const hit = pickGrab(cx, cy);
+      if (!hit) return false;
+      hold = { x0: cx, y0: cy, q0: sim.q[gi], target: sim.q[gi], vh: 0, tLast: performance.now(), ...pxPerUnit(hit.point) };
+      sim.grab(); ensureAudio(); return true;
+    }
+    function moveHold(cx, cy) {
+      if (!hold) return;
+      const now = performance.now(), target = hold.q0 + ((cx - hold.x0) * hold.ux + (cy - hold.y0) * hold.uy) / hold.n;
+      const dt = Math.max(1, now - hold.tLast) / 1000, v = ((target - hold.target) / dt) / Math.max(1e-9, sim.tscale);
+      hold.vh = hold.vh * 0.6 + v * 0.4; hold.target = target; hold.tLast = now;
+      sim.drag(target, hold.vh);
+    }
+    function endHold() { if (hold) { hold = null; sim.release(); } }
+    const ZUP = new THREE.Vector3(0, 0, 1);
+    function orbit(dx, dy, p) {
+      const k = Math.PI / Math.max(300, el.clientWidth);
+      const dth = -dx * k, ph1 = Math.max(-1.5, Math.min(1.5, cam.ph + dy * k)), dph = ph1 - cam.ph;
+      if (p) {
+        const t = new THREE.Vector3(cam.tx, cam.ty, cam.tz).sub(p).applyAxisAngle(ZUP, dth);
+        t.applyAxisAngle(new THREE.Vector3(-Math.sin(cam.th + dth), Math.cos(cam.th + dth), 0), -dph).add(p);
+        cam.tx = t.x; cam.ty = t.y; cam.tz = t.z;
+      }
+      cam.th += dth; cam.ph = ph1; dirty = true;
+    }
+    function pan(dx, dy, p) {
+      placeCamera(); camera.updateMatrixWorld();
+      const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
+      camera.matrixWorld.extractBasis(right, up, new THREE.Vector3()); camera.getWorldDirection(fwd);
+      const depth = p ? Math.max(1, p.clone().sub(camera.position).dot(fwd)) : cam.r;
+      const s = 2 * depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.max(1, el.clientHeight);
+      cam.tx += (-dx * right.x + dy * up.x) * s; cam.ty += (-dx * right.y + dy * up.y) * s; cam.tz += (-dx * right.z + dy * up.z) * s; dirty = true;
+    }
+    let zp = null;
+    function zoomPoint(cx, cy) {
+      const now = performance.now();
+      if (zp && now - zp.t < 250 && Math.hypot(cx - zp.cx, cy - zp.cy) < 3) { zp.t = now; return zp.p; }
+      const p = pointUnder(cx, cy); zp = p ? { p, cx, cy, t: now } : null; return p;
+    }
+    function pointUnder(cx, cy) {
+      placeCamera(); scene.updateMatrixWorld(); ray.setFromCamera(ndc(cx, cy), camera);
+      const hit = ray.intersectObjects(objs.filter((o) => o.mesh.visible && pmode(o) === "solid").map((o) => o.mesh), false).filter(live)[0];
+      let p = hit ? hit.point : null;
+      if (!p) {
+        const n = new THREE.Vector3(); camera.getWorldDirection(n); p = new THREE.Vector3();
+        if (!ray.ray.intersectPlane(new THREE.Plane().setFromNormalAndCoplanarPoint(n, new THREE.Vector3(cam.tx, cam.ty, cam.tz)), p)) p = null;
+      }
+      return p;
+    }
+    const rMax = () => modelSize * 12;
+    function zoomAt(f, cx, cy) {
+      const r1 = Math.max(modelSize / 400, Math.min(rMax(), cam.r * f)), k = r1 / cam.r, p = zoomPoint(cx, cy);
+      if (p) { cam.tx = p.x + (cam.tx - p.x) * k; cam.ty = p.y + (cam.ty - p.y) * k; cam.tz = p.z + (cam.tz - p.z) * k; }
+      cam.r = r1; dirty = true;
+    }
+
+    // ---------------------------------------------------------------- part cards
+    const card = $("card"), pill = $("pill");
+    let sel = null, iso = null, tapCycle = null, selAt = { x: 0, y: 0 };
+    function syncHi() {
+      const m = sel.mesh.material, b = sel.base;
+      m.transparent = b.transparent; m.opacity = b.transparent ? (b.userData.opac != null ? b.opacity : Math.max(b.opacity, 0.6)) : 1;
+      m.depthWrite = b.depthWrite; m.needsUpdate = true;
+    }
+    function ownMat(o) {
+      if (o.own) return sel === o ? o.base : o.mesh.material;
+      const m = (sel === o ? o.base : o.mesh.material).clone(); o.own = true;
+      if (sel === o) o.base = m; else o.mesh.material = m;
+      return m;
+    }
+    function pickAny(cx, cy) {
+      scene.updateMatrixWorld(); ray.setFromCamera(ndc(cx, cy), camera);
+      const hits = ray.intersectObjects(objs.filter((o) => o.mesh.visible).map((o) => o.mesh), false).filter(live);
+      const list = []; for (const h of hits) { const o = h.object.userData.o; if (o && !list.includes(o)) list.push(o); }
+      if (!list.length) { tapCycle = null; return null; }
+      const again = tapCycle && Math.hypot(cx - tapCycle.x, cy - tapCycle.y) < 12 && tapCycle.list.length === list.length && tapCycle.list.every((o, i) => o === list[i]);
+      tapCycle = { x: cx, y: cy, list, i: again ? (tapCycle.i + 1) % list.length : 0 };
+      return list[tapCycle.i];
+    }
+    const infoOf = (o) => Object.assign({ title: o.p.label, kind: "Part", rows: [] }, o.p.info || {});
+    function deselect() {
+      if (sel) { sel.mesh.material.dispose(); sel.mesh.material = sel.base; sel = null; }
+      card.hidden = true; pill.hidden = true; dirty = true;
+    }
+    function select(o, cx, cy, full) {
+      deselect();
+      if (!o) return;
+      sel = o; o.base = o.mesh.material;
+      const m = o.base.clone(); m.emissive = new THREE.Color(0x2f6fd6); m.emissiveIntensity = 0.55; o.mesh.material = m; syncHi();
+      const r = stage.getBoundingClientRect(); selAt = { x: cx - r.left, y: cy - r.top };
+      if (full) { openCard(); return; }
+      const n = tapCycle && tapCycle.list.length > 1 ? tapCycle.list.length : 0;
+      $("pillt").textContent = infoOf(o).title;
+      $("pilln").textContent = n ? `${tapCycle.i + 1}/${n}` : ""; $("pilln").hidden = !n;
+      pill.hidden = false; place(pill, ["above", "below", "right", "left"]);
+      dirty = true;
+    }
+    function openCard() { pill.hidden = true; renderCard(sel); card.hidden = false; if (phone()) keepInView(card); else place(card, ["right", "left", "below", "above"]); dirty = true; }
+    const phone = () => !!(window.matchMedia && window.matchMedia("(max-width: 720px)").matches);
+    function partRect(o) {
+      placeCamera(); scene.updateMatrixWorld();
+      const W = el.clientWidth, Hh = el.clientHeight, a = o.mesh.geometry.attributes.position.array, n = a.length / 3;
+      const step = Math.max(1, Math.floor(n / 3000)), v = new THREE.Vector3(), R = { l: 1e9, t: 1e9, r: -1e9, b: -1e9 };
+      for (let i = 0; i < n; i += step) {
+        v.set(a[i * 3], a[i * 3 + 1], a[i * 3 + 2]).applyMatrix4(o.mesh.matrixWorld).project(camera);
+        if (v.z > 1) continue;
+        const x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * Hh;
+        R.l = Math.min(R.l, x); R.r = Math.max(R.r, x); R.t = Math.min(R.t, y); R.b = Math.max(R.b, y);
+      }
+      if (R.l > R.r) return null;
+      R.l = Math.max(0, R.l); R.t = Math.max(0, R.t); R.r = Math.min(W, R.r); R.b = Math.min(Hh, R.b);
+      return R;
+    }
+    const overlap = (A, Bb) => Math.max(0, Math.min(A.r, Bb.r) - Math.max(A.l, Bb.l)) * Math.max(0, Math.min(A.b, Bb.b) - Math.max(A.t, Bb.t));
+    function place(box, order) {
+      const W = el.clientWidth, Hh = el.clientHeight, w = box.offsetWidth, h = box.offsetHeight, m = 10, E = 12;
+      const R = sel && partRect(sel), cl = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+      const at = (x, y) => { box.style.left = Math.round(x) + "px"; box.style.top = Math.round(y) + "px"; };
+      if (!R) { at(cl(selAt.x + 18, E, W - w - E), cl(selAt.y - 24, E, Hh - h - E)); return; }
+      const px = cl(selAt.x - w / 2, E, W - w - E), py = cl(selAt.y - h / 2, E, Hh - h - E);
+      const C = { above: [px, R.t - h - m], below: [px, R.b + m], right: [R.r + m, py], left: [R.l - w - m, py] };
+      for (const k of order) { const [x, y] = C[k]; if (x >= E && y >= E && x + w <= W - E && y + h <= Hh - E) { at(x, y); return; } }
+      let best = null;
+      for (const fx of [0, 0.5, 1]) for (const fy of [0, 0.5, 1]) {
+        const x = E + fx * (W - w - 2 * E), y = E + fy * (Hh - h - 2 * E), ov = overlap({ l: x, t: y, r: x + w, b: y + h }, R);
+        if (!best || ov < best.ov) best = { x, y, ov };
+      }
+      at(best.x, best.y); keepInView(box);
+    }
+    function keepInView(box) {
+      const R = sel && partRect(sel); if (!R) return;
+      const W = el.clientWidth, Hh = el.clientHeight, sr = stage.getBoundingClientRect(), br = box.getBoundingClientRect();
+      const Bx = { l: br.left - sr.left, t: br.top - sr.top, r: br.right - sr.left, b: br.bottom - sr.top };
+      const mx = (R.l + R.r) / 2, my = (R.t + R.b) / 2;
+      if (!(mx > Bx.l && mx < Bx.r && my > Bx.t && my < Bx.b)) return;
+      const free = [[Bx.t, mx, Bx.t / 2], [Hh - Bx.b, mx, (Bx.b + Hh) / 2], [Bx.l, Bx.l / 2, my], [W - Bx.r, (Bx.r + W) / 2, my]].sort((a, b) => b[0] - a[0])[0];
+      const s = sel.mesh.geometry.boundingSphere.center.clone().applyMatrix4(sel.mesh.matrixWorld);
+      pan(free[1] - mx, free[2] - my, s);
+      if (tapCycle) { tapCycle.x += free[1] - mx; tapCycle.y += free[2] - my; }
+    }
+    function renderCard(o) {
+      const I = infoOf(o), mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+      card.replaceChildren();
+      const top = mk("div", "ct"); const h = mk("h3", null, I.title); h.id = "cardt"; top.appendChild(h);
+      const x = mk("button", "x", "×"); x.type = "button"; x.setAttribute("aria-label", "Close"); x.addEventListener("click", deselect); top.appendChild(x);
+      card.appendChild(top);
+      const row = mk("div", "row2 ca"); card.appendChild(row);
+      const body = mk("div", "cb"); card.appendChild(body);
+      const same = I.pn ? objs.filter((q) => q.p.info && q.p.info.pn === I.pn).length : 1;
+      const pn = mk("div", "pn");
+      if (I.pn) pn.appendChild(mk("span", "k", I.pn));
+      if (I.kind) pn.appendChild(mk("span", null, I.kind));
+      pn.appendChild(mk("span", null, `${same} in this model`));
+      body.appendChild(pn);
+      const seg = mk("div", "pm"); seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "This part");
+      for (const [md, txt] of [["solid", "Show"], ["xray", "See-through"], ["off", "Hide"]]) {
+        const b = mk("button", null, txt); b.type = "button"; b.setAttribute("aria-pressed", String(pmode(o) === md));
+        b.addEventListener("click", () => { ownMat(o); o.pm = md === mode[o.g] ? null : md; applyModes(); });
+        seg.appendChild(b);
+      }
+      body.appendChild(seg);
+      if (pmode(o) === "xray") {
+        const op = mk("div", "op"), lab = mk("label", null, "Opacity"), r = mk("input"), vv = mk("span");
+        r.type = "range"; r.min = "0.03"; r.max = "1"; r.step = "0.01"; r.id = "cardop"; lab.htmlFor = "cardop";
+        r.value = String((sel === o ? o.base : o.mesh.material).opacity); vv.textContent = Math.round(+r.value * 100) + "%";
+        r.addEventListener("input", () => { const m = ownMat(o), v = +r.value; m.userData.opac = v; m.opacity = v; vv.textContent = Math.round(v * 100) + "%"; if (sel === o) syncHi(); dirty = true; });
+        op.append(lab, r, vv); body.appendChild(op);
+      }
+      const rows = (I.rows || []).slice();
+      if (o.p.mass != null) rows.push(["Mass", (o.p.mass * 1000).toFixed(1) + " g"]);
+      if (rows.length) { const dl = mk("dl"); for (const [k, v] of rows) { dl.appendChild(mk("dt", null, k)); dl.appendChild(mk("dd", null, v)); } body.appendChild(dl); }
+      if (I.stack) {
+        body.appendChild(mk("h2", null, I.stack.title));
+        const ol = mk("ol"); I.stack.items.forEach((t, i) => ol.appendChild(mk("li", i === I.stack.at ? "me" : null, t))); body.appendChild(ol);
+      }
+      if (I.note) body.appendChild(mk("p", "cn", I.note));
+      if (tapCycle && tapCycle.list[tapCycle.i] === o && tapCycle.list.length > 1)
+        body.appendChild(mk("p", "cn", `Part ${tapCycle.i + 1} of ${tapCycle.list.length} under the tap: tap the same spot again for the next one behind.`));
+      body.appendChild(mk("p", "cn", "Model: " + o.p.label));
+      const bF = mk("button", null, "Zoom to it"); bF.type = "button";
+      bF.addEventListener("click", () => {
+        scene.updateMatrixWorld(); const s = o.mesh.geometry.boundingSphere.clone().applyMatrix4(o.mesh.matrixWorld);
+        cam.tx = s.center.x; cam.ty = s.center.y; cam.tz = s.center.z; cam.r = Math.max(modelSize / 30, s.radius * 5); dirty = true;
+      });
+      const bI = mk("button", null, iso ? "Show all" : "Show only this"); bI.type = "button";
+      bI.addEventListener("click", () => { iso = iso ? null : new Set([o]); applyModes(); renderCard(o); });
+      row.append(bF, bI);
+    }
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape" && sel) { deselect(); if (iso) { iso = null; applyModes(); } } });
+    const tap = (cx, cy) => { const o = pickAny(cx, cy); select(o, cx, cy, !!o && (tapCycle.list.length === 1 || (tapCycle.i === 0 && pmode(o) === "solid"))); };
+    $("pillx").addEventListener("click", () => { if (sel) openCard(); });
+    $("pillc").addEventListener("click", deselect);
+
+    // ---------------------------------------------------------------- marker: lines on any visible surface. Points are kept in
+    // the frame of the part they were drawn on (so they move with it) and save to the page db when there is one.
+    const MARK = { on: false, colour: "#e0312b", stroke: null, db: null, docs: {}, mine: [], top: false };
+    const COL_MARK = "marks_" + slug, COL_PAINT = "paint_" + slug;
+    const markRoot = new THREE.Group(); scene.add(markRoot);
+    function markHit(cx, cy) {
+      scene.updateMatrixWorld(); ray.setFromCamera(ndc(cx, cy), camera);
+      const vis = objs.filter((o) => o.mesh.visible);
+      const hits = ray.intersectObjects(vis.map((o) => o.mesh), false).filter(live);
+      if (!SEC.on) return hits[0] || null;
+      const tp = ray.ray.distanceToPlane(SEC.plane);
+      if (tp === null || (hits[0] && hits[0].distance < tp)) return hits[0] || null;
+      const saved = vis.map((o) => o.mesh.material.side);
+      vis.forEach((o) => { o.mesh.material.side = THREE.DoubleSide; });
+      const all = ray.intersectObjects(vis.map((o) => o.mesh), false);
+      vis.forEach((o, i) => { o.mesh.material.side = saved[i]; });
+      const after = all.find((q) => q.distance > tp + 1e-3);
+      if (after && after.face) {
+        const nw = after.face.normal.clone().transformDirection(after.object.matrixWorld);
+        if (nw.dot(ray.ray.direction) > 0) return { point: ray.ray.at(tp, new THREE.Vector3()), object: after.object, face: { normal: SEC.plane.normal.clone().negate() }, onCap: true, distance: tp };
+      }
+      return hits[0] || null;
+    }
+    const markMat = (colour) => new THREE.MeshBasicMaterial({ color: colour, depthTest: !MARK.top });
+    function markMesh(P, colour) {
+      const r = Math.max(0.2, modelSize / 900); let m;
+      if (P.length < 2) { m = new THREE.Mesh(new THREE.SphereGeometry(r * 1.6, 10, 8), markMat(colour)); m.position.copy(P[0]); }
+      else m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(P), Math.min(600, P.length * 3), r, 8, false), markMat(colour));
+      m.renderOrder = 1000; return m;
+    }
+    const holderOf = (part) => (byId[part] ? byId[part].mesh : markRoot);
+    function markStart(cx, cy) {
+      const h = markHit(cx, cy); if (!h) return false;
+      MARK.gtag = Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+      MARK.stroke = { pts: [], part: h.object.userData.o.p.id };
+      markAdd(h); return true;
+    }
+    function markAdd(h) {
+      const s = MARK.stroke; if (!s) return;
+      const part = h.object.userData.o.p.id;
+      const n = h.onCap ? SEC.plane.normal.clone() : h.face ? h.face.normal.clone().transformDirection(h.object.matrixWorld) : new THREE.Vector3();
+      const pw = h.point.clone().addScaledVector(n, (h.onCap ? 0.3 : 0.4) * modelSize / 500);
+      const inv = new THREE.Matrix4().copy(byId[s.part].mesh.matrixWorld).invert(), p = pw.clone().applyMatrix4(inv);
+      const last = s.pts[s.pts.length - 1], tol = modelSize / 700;
+      if (last && last.distanceTo(p) < tol) return;
+      if (part !== s.part || (last && last.distanceTo(p) > tol * 17)) { markEnd(); MARK.stroke = { pts: [], part }; markAdd(h); return; }
+      if (s.pts.length >= 1200) return;
+      s.pts.push(p);
+      if (s.mesh) { s.mesh.geometry.dispose(); holderOf(s.part).remove(s.mesh); }
+      s.mesh = markMesh(s.pts, MARK.colour); holderOf(s.part).add(s.mesh); dirty = true;
+    }
+    function markMove(cx, cy) { const h = markHit(cx, cy); if (h) markAdd(h); }
+    async function markEnd() {
+      const s = MARK.stroke; MARK.stroke = null;
+      if (!s || !s.pts.length) return;
+      const id = "s" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
+      MARK.mine.push(id);
+      const doc = { g: MARK.gtag, colour: MARK.colour, note: $("markNote").value.trim().slice(0, 200), space: "part", part: s.part,
+        q: sim.q.map((v) => Math.round(v * 100) / 100), pts: s.pts.flatMap((p) => [p.x, p.y, p.z].map((v) => Math.round(v * 10) / 10)), at: new Date().toISOString() };
+      MARK.docs[id] = doc; s.mesh && (s.mesh.userData.id = id);
+      if (!MARK.db) { markStatus("not saved: this view has no database (drawn here only)"); return; }
+      markStatus("saving…");
+      try { await MARK.db.doc(COL_MARK + "/" + id).set(doc); markStatus(`saved · ${Object.keys(MARK.docs).length} stroke(s)`); }
+      catch (err) { markStatus("couldn't save (" + (err && err.code || "error") + ")"); }
+    }
+    function markStatus(t) { $("markS").textContent = t; }
+    const markMeshes = [];
+    function markRender(docs) {
+      for (const m of markMeshes.splice(0)) { m.parent && m.parent.remove(m); m.geometry.dispose(); }
+      for (const o of objs) for (const c of [...o.mesh.children]) if (c.userData.mark) { o.mesh.remove(c); c.geometry.dispose(); }
+      for (const d of Object.values(docs)) {
+        const P = []; for (let i = 0; i + 2 < d.pts.length; i += 3) P.push(new THREE.Vector3(d.pts[i], d.pts[i + 1], d.pts[i + 2]));
+        if (!P.length) continue;
+        const m = markMesh(P, d.colour || "#e0312b"); m.userData.mark = true; holderOf(d.part).add(m); markMeshes.push(m);
+      }
+      dirty = true;
+    }
+    const dbReady = (async () => {
+      if (!window.claude || !window.claude.use) { markStatus("lines are not saved here (open the page as a claude.ai artifact to save them)"); return; }
+      try { MARK.db = await window.claude.use("db"); } catch (_) { MARK.db = null; }
+      if (!MARK.db) { markStatus("not saved: sign in on claude.ai to save lines"); return; }
+      MARK.db.collection(COL_MARK).onSnapshot((snap) => {
+        const docs = {}; snap.docs.forEach((d) => { docs[d.id] = d.data(); });
+        MARK.docs = docs; markRender(docs); markStatus(`${Object.keys(docs).length} stroke(s) on the model`);
+      }, () => markStatus("couldn't load lines"));
+    })();
+
+    // ---------------------------------------------------------------- paint: colour surface triangles, saved per colour
+    const PAL = [["#f2b705", "Yellow"], ["#13b5c8", "Cyan"], ["#d63ca0", "Magenta"], ["#3fae49", "Green"], ["#7b5cd6", "Violet"], ["#f26b1d", "Orange"]];
+    const PAINT = { on: false, colour: 0, erase: false, brush: 2, labels: PAL.map(() => ""), dirty: new Set(), stroking: false, db: null, stale: 0 };
+    const PS = new Map(), ovDirty = new Set();
+    const ovMat = new THREE.MeshLambertMaterial({ vertexColors: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const PALC = PAL.map(([hx]) => new THREE.Color(hx));
+    function paintState(o) {
+      let s = PS.get(o); if (s) return s;
+      const pos = o.mesh.geometry.attributes.position.array, n = pos.length / 9;
+      const cen = new Float32Array(n * 3), nor = new Float32Array(n * 3), area = new Float32Array(n), grid = new Map(), C = Math.max(0.5, modelSize / 250);
+      for (let t = 0; t < n; t++) {
+        const q = t * 9, ax = pos[q], ay = pos[q + 1], az = pos[q + 2], bx = pos[q + 3] - ax, by = pos[q + 4] - ay, bz = pos[q + 5] - az;
+        const cx = pos[q + 6] - ax, cy = pos[q + 7] - ay, cz = pos[q + 8] - az;
+        const nx = by * cz - bz * cy, ny = bz * cx - bx * cz, nz = bx * cy - by * cx, l = Math.hypot(nx, ny, nz) || 1;
+        area[t] = l / 2; nor[t * 3] = nx / l; nor[t * 3 + 1] = ny / l; nor[t * 3 + 2] = nz / l;
+        const x = ax + (bx + cx) / 3, y = ay + (by + cy) / 3, z = az + (bz + cz) / 3;
+        cen[t * 3] = x; cen[t * 3 + 1] = y; cen[t * 3 + 2] = z;
+        const k = Math.floor(x / C) + "," + Math.floor(y / C) + "," + Math.floor(z / C);
+        (grid.get(k) || grid.set(k, []).get(k)).push(t);
+      }
+      s = { o, n, cen, nor, area, grid, C, paint: new Int8Array(n).fill(-1), ov: null };
+      PS.set(o, s); return s;
+    }
+    function setTri(s, t, c) {
+      if (s.paint[t] === c) return false;
+      if (s.paint[t] >= 0) PAINT.dirty.add(s.paint[t]);
+      if (c >= 0) PAINT.dirty.add(c);
+      s.paint[t] = c; ovDirty.add(s); return true;
+    }
+    function rebuildOverlay(s) {
+      const list = []; for (let t = 0; t < s.n; t++) if (s.paint[t] >= 0) list.push(t);
+      if (s.ov) { s.o.mesh.remove(s.ov); s.ov.geometry.dispose(); s.ov = null; }
+      if (!list.length) return;
+      const src = s.o.mesh.geometry.attributes.position.array, srn = s.o.mesh.geometry.attributes.normal.array;
+      const P = new Float32Array(list.length * 9), N = new Float32Array(list.length * 9), Cc = new Float32Array(list.length * 9);
+      list.forEach((t, i) => {
+        P.set(src.subarray(t * 9, t * 9 + 9), i * 9); N.set(srn.subarray(t * 9, t * 9 + 9), i * 9);
+        const c = PALC[s.paint[t]]; for (let v = 0; v < 3; v++) Cc.set([c.r, c.g, c.b], i * 9 + v * 3);
+      });
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(P, 3)); g.setAttribute("normal", new THREE.BufferAttribute(N, 3)); g.setAttribute("color", new THREE.BufferAttribute(Cc, 3));
+      s.ov = new THREE.Mesh(g, ovMat); s.ov.renderOrder = 5; s.o.mesh.add(s.ov);
+    }
+    function flushOverlays() { if (!ovDirty.size) return; for (const s of ovDirty) rebuildOverlay(s); ovDirty.clear(); paintCounts(); dirty = true; }
+    function paintHit(cx, cy) {
+      scene.updateMatrixWorld(); ray.setFromCamera(ndc(cx, cy), camera);
+      const hits = ray.intersectObjects(objs.filter((o) => o.mesh.visible).map((o) => o.mesh), false).filter(live);
+      return hits.find((q) => pmode(q.object.userData.o) === "solid") || hits[0] || null;
+    }
+    function brushAt(h) {
+      const o = h.object.userData.o, s = paintState(o), t0 = h.faceIndex, c = PAINT.erase ? -1 : PAINT.colour;
+      if (t0 == null || t0 >= s.n) return;
+      const p = h.point.clone().applyMatrix4(new THREE.Matrix4().copy(o.mesh.matrixWorld).invert());
+      setTri(s, t0, c);
+      const R = PAINT.brush * Math.max(1, modelSize / 500); if (R <= 0) return;
+      const nx = s.nor[t0 * 3], ny = s.nor[t0 * 3 + 1], nz = s.nor[t0 * 3 + 2], gk = Math.ceil(R / s.C);
+      const ix = Math.floor(p.x / s.C), iy = Math.floor(p.y / s.C), iz = Math.floor(p.z / s.C);
+      for (let a = -gk; a <= gk; a++) for (let b = -gk; b <= gk; b++) for (let d = -gk; d <= gk; d++) {
+        const list = s.grid.get((ix + a) + "," + (iy + b) + "," + (iz + d)); if (!list) continue;
+        for (const t of list) {
+          const dx = s.cen[t * 3] - p.x, dy = s.cen[t * 3 + 1] - p.y, dz = s.cen[t * 3 + 2] - p.z;
+          if (dx * dx + dy * dy + dz * dz > R * R) continue;
+          if (s.nor[t * 3] * nx + s.nor[t * 3 + 1] * ny + s.nor[t * 3 + 2] * nz < 0.2) continue;
+          setTri(s, t, c);
+        }
+      }
+    }
+    let lastPaint = null;
+    function paintStart(cx, cy) { const h = paintHit(cx, cy); if (!h) return false; PAINT.stroking = true; lastPaint = { x: cx, y: cy }; brushAt(h); return true; }
+    function paintMove(cx, cy) {
+      if (!PAINT.stroking) return;
+      const dx = cx - lastPaint.x, dy = cy - lastPaint.y, n = Math.min(3, Math.ceil(Math.hypot(dx, dy) / 10));
+      for (let i = 1; i <= n; i++) { const h = paintHit(lastPaint.x + dx * i / n, lastPaint.y + dy * i / n); if (h) brushAt(h); }
+      lastPaint = { x: cx, y: cy };
+    }
+    function paintEnd() { if (PAINT.stroking) { PAINT.stroking = false; lastPaint = null; paintSave(); } }
+    function paintStatus(t) { $("paintS").textContent = t; }
+    function paintCounts() {
+      const n = PAL.map(() => 0);
+      for (const s of PS.values()) for (let t = 0; t < s.n; t++) if (s.paint[t] >= 0) n[s.paint[t]]++;
+      n.forEach((v, i) => { const e = $("pcnt-" + i); if (e) e.textContent = v; });
+    }
+    const rle = (list) => { const out = []; for (let i = 0; i < list.length;) { let j = i; while (j + 1 < list.length && list[j + 1] === list[j] + 1) j++; out.push(list[i], j - i + 1); i = j + 1; } return out; };
+    function colourDoc(c) {
+      const parts = []; let count = 0, area = 0;
+      for (const s of PS.values()) {
+        const list = []; for (let t = 0; t < s.n; t++) if (s.paint[t] === c) { list.push(t); area += s.area[t]; }
+        if (list.length) { parts.push({ id: s.o.p.id, nf: s.n, r: rle(list) }); count += list.length; }
+      }
+      return { colour: PAL[c][1], hex: PAL[c][0], label: PAINT.labels[c], count, area_mm2: Math.round(area * 100) / 100, parts,
+        frame: "each part's own frame (its CAD position); triangle index = face order of the packed mesh", at: new Date().toISOString() };
+    }
+    let paintTimer = null, paintSaving = false;
+    function paintSave() { clearTimeout(paintTimer); paintTimer = setTimeout(paintFlush, 600); }
+    async function paintFlush() {
+      if (!PAINT.db) { if (PAINT.dirty.size) paintStatus("paint is not saved here (open the page as a claude.ai artifact to save it)"); return; }
+      if (paintSaving) { paintSave(); return; }
+      paintSaving = true;
+      try {
+        while (PAINT.dirty.size) { const c = PAINT.dirty.values().next().value; PAINT.dirty.delete(c); paintStatus("saving…"); await PAINT.db.doc(COL_PAINT + "/c" + c).set(colourDoc(c)); }
+        paintStatus("saved");
+      } catch (err) { paintStatus("couldn't save (" + (err && err.code || "error") + ")"); } finally { paintSaving = false; }
+    }
+    function paintApply(c, d) {
+      for (const s of PS.values()) for (let t = 0; t < s.n; t++) if (s.paint[t] === c) { s.paint[t] = -1; ovDirty.add(s); }
+      for (const e of d.parts || []) {
+        const o = byId[e.id]; if (!o) { PAINT.stale++; continue; }
+        const s = paintState(o); if (s.n !== e.nf) { PAINT.stale++; continue; }
+        for (let i = 0; i < e.r.length; i += 2) for (let t = e.r[i]; t < e.r[i] + e.r[i + 1]; t++) if (t < s.n) s.paint[t] = c;
+        ovDirty.add(s);
+      }
+      PAINT.labels[c] = d.label || "";
+      const inp = $("plab-" + c); if (inp && document.activeElement !== inp) inp.value = PAINT.labels[c];
+    }
+    function paintConnect() {
+      if (!MARK.db) { paintStatus("paint is not saved here (open the page as a claude.ai artifact to save it)"); return; }
+      PAINT.db = MARK.db;
+      PAINT.db.collection(COL_PAINT).onSnapshot((snap) => {
+        PAINT.stale = 0;
+        for (const d of snap.docs) { const c = +d.id.slice(1); if (!(c >= 0 && c < PAL.length) || PAINT.dirty.has(c) || PAINT.stroking) continue; paintApply(c, d.data() || {}); }
+        paintStatus(PAINT.stale ? `paint on ${PAINT.stale} part(s) from an older model is not shown` : "paint saves to this page"); dirty = true;
+      }, () => paintStatus("couldn't load paint"));
+    }
+    const palEl = $("pal");
+    PAL.forEach(([hx, name], i) => {
+      const row = document.createElement("div"); row.className = "pc";
+      const b = document.createElement("button"); b.type = "button"; b.className = "pchip"; b.style.background = hx; b.setAttribute("aria-label", name); b.setAttribute("aria-pressed", String(i === 0));
+      const inp = document.createElement("input"); inp.type = "text"; inp.id = "plab-" + i; inp.maxLength = 200; inp.placeholder = name + ": what does it mark?"; inp.setAttribute("aria-label", name + " label");
+      const n = document.createElement("span"); n.className = "n"; n.id = "pcnt-" + i; n.textContent = "0";
+      b.addEventListener("click", () => { PAINT.colour = i; PAINT.erase = false; syncPaint(); });
+      inp.addEventListener("change", () => { PAINT.labels[i] = inp.value.trim(); PAINT.dirty.add(i); paintSave(); });
+      row.append(b, inp, n); palEl.appendChild(row);
+    });
+    let clearArm = 0;
+    function syncPaint() {
+      $("paintOn").textContent = PAINT.on ? "Paint on" : "Paint off"; $("paintOn").setAttribute("aria-pressed", String(PAINT.on));
+      stage.classList.toggle("painting", PAINT.on);
+      palEl.querySelectorAll(".pchip").forEach((c, i) => c.setAttribute("aria-pressed", String(!PAINT.erase && i === PAINT.colour)));
+      $("eraser").setAttribute("aria-pressed", String(PAINT.erase));
+      document.querySelectorAll("[data-brush]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.brush === PAINT.brush)));
+      $("clearc").textContent = clearArm ? `Tap again to clear all ${PAL[PAINT.colour][1].toLowerCase()}` : "Clear this colour";
+    }
+    function setTool(k) {
+      MARK.on = k === "mark"; PAINT.on = k === "paint";
+      $("markOn").textContent = MARK.on ? "Marker on" : "Marker off"; $("markOn").setAttribute("aria-pressed", String(MARK.on));
+      stage.classList.toggle("marking", MARK.on); syncPaint();
+      if (k) deselect();
+    }
+    $("paintOn").addEventListener("click", () => setTool(PAINT.on ? null : "paint"));
+    $("eraser").addEventListener("click", () => { PAINT.erase = !PAINT.erase; if (PAINT.erase && !PAINT.on) setTool("paint"); syncPaint(); });
+    document.querySelectorAll("[data-brush]").forEach((b) => b.addEventListener("click", () => { PAINT.brush = +b.dataset.brush; syncPaint(); }));
+    $("clearc").addEventListener("click", () => {
+      if (!clearArm) { clearArm = 1; syncPaint(); setTimeout(() => { clearArm = 0; syncPaint(); }, 4000); return; }
+      clearArm = 0;
+      for (const s of PS.values()) for (let t = 0; t < s.n; t++) if (s.paint[t] === PAINT.colour) setTri(s, t, -1);
+      PAINT.dirty.add(PAINT.colour); syncPaint(); paintSave();
+    });
+
+    // ---------------------------------------------------------------- pointer + touch
+    let drag = null;
+    el.addEventListener("contextmenu", (e) => e.preventDefault());
+    el.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch") return;
+      let m = e.button === 2 ? "orbit" : e.button === 1 || e.shiftKey ? "pan" : "act";
+      if (m === "act" && MARK.on) m = markStart(e.clientX, e.clientY) ? "mark" : "orbit";
+      if (m === "act" && PAINT.on) m = paintStart(e.clientX, e.clientY) ? "paint" : "orbit";
+      if (m === "act" && !startHold(e.clientX, e.clientY)) m = "orbit";
+      drag = { x: e.clientX, y: e.clientY, m, sx: e.clientX, sy: e.clientY, t0: performance.now(), b: e.button, p: m === "act" ? null : pointUnder(e.clientX, e.clientY) };
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    el.addEventListener("pointermove", (e) => {
+      if (!drag || e.pointerType === "touch") return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
+      if (drag.m === "mark") markMove(e.clientX, e.clientY);
+      else if (drag.m === "paint") paintMove(e.clientX, e.clientY);
+      else if (drag.m === "act") moveHold(e.clientX, e.clientY); else if (drag.m === "pan") pan(dx, dy, drag.p); else orbit(dx, dy, drag.p);
+    });
+    const up = (e) => {
+      if (drag && drag.m === "mark") { markEnd(); drag = null; return; }
+      if (drag && drag.m === "paint") { paintEnd(); drag = null; return; }
+      if (drag && drag.m === "act") endHold();
+      if (drag && drag.b === 0 && e.type === "pointerup" && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 5 && performance.now() - drag.t0 < 600) tap(e.clientX, e.clientY);
+      drag = null;
+    };
+    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    el.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(Math.exp(e.deltaY * (e.deltaMode === 1 ? 0.04 : 0.0012)), e.clientX, e.clientY); }, { passive: false });
+    let t = null;
+    const pts = (e) => Array.from(e.touches).map((p) => ({ x: p.clientX, y: p.clientY }));
+    el.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const p = pts(e);
+      if (p.length === 1 && !(t && t.gesture)) { if (!(MARK.on && markStart(p[0].x, p[0].y)) && !(PAINT.on && paintStart(p[0].x, p[0].y))) startHold(p[0].x, p[0].y); }
+      else if (p.length > 1 && MARK.stroke) { MARK.stroke.mesh && holderOf(MARK.stroke.part).remove(MARK.stroke.mesh); MARK.stroke = null; }
+      else if (p.length > 1 && PAINT.stroking) paintEnd();
+      const piv = p.length >= 2 ? pointUnder((p[0].x + p[1].x) / 2, (p[0].y + p[1].y) / 2) : hold ? null : pointUnder(p[0].x, p[0].y);
+      t = { p, piv, gesture: (t && t.gesture) || p.length > 1, tap: p.length === 1 && !(t && t.gesture) ? { x: p[0].x, y: p[0].y, t0: performance.now() } : null };
+    }, { passive: false });
+    el.addEventListener("touchmove", (e) => {
+      e.preventDefault(); if (!t) return;
+      const p = pts(e);
+      if (p.length === 1 && t.p.length === 1) { if (MARK.stroke) markMove(p[0].x, p[0].y); else if (PAINT.stroking) paintMove(p[0].x, p[0].y); else if (hold) moveHold(p[0].x, p[0].y); else orbit(p[0].x - t.p[0].x, p[0].y - t.p[0].y, t.piv); }
+      else if (p.length >= 2 && t.p.length >= 2) {
+        const c0 = { x: (t.p[0].x + t.p[1].x) / 2, y: (t.p[0].y + t.p[1].y) / 2 }, c1 = { x: (p[0].x + p[1].x) / 2, y: (p[0].y + p[1].y) / 2 };
+        const d0 = Math.hypot(t.p[0].x - t.p[1].x, t.p[0].y - t.p[1].y), d1 = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+        if (p.length === 2) orbit(c1.x - c0.x, c1.y - c0.y, t.piv); else pan(c1.x - c0.x, c1.y - c0.y, t.piv);
+        if (d0 > 0 && d1 > 0) zoomAt(d0 / d1, c1.x, c1.y);
+      }
+      const tp = t.tap && p.length === 1 && Math.hypot(p[0].x - t.tap.x, p[0].y - t.tap.y) < 8 ? t.tap : null;
+      t = { p, piv: t.piv, gesture: t.gesture || p.length > 1, tap: tp };
+    }, { passive: false });
+    el.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      if (!e.touches.length) {
+        if (MARK.stroke) { markEnd(); t = null; return; }
+        if (PAINT.stroking) { paintEnd(); t = null; return; }
+        endHold();
+        if (t && t.tap && !t.gesture && performance.now() - t.tap.t0 < 600 && !MARK.on && !PAINT.on) tap(t.tap.x, t.tap.y);
+        t = null;
+      } else t = { p: pts(e), piv: t && t.piv, gesture: true };
+    }, { passive: false });
+
+    // ---------------------------------------------------------------- panel: bodies, views, marker, section
+    const gEl = $("groups");
+    {
+      const lab = document.createElement("span"); lab.className = "gl gall"; lab.textContent = "All bodies"; gEl.appendChild(lab);
+      for (const [m, txt] of [["solid", "All solid"], ["xray", "All see-through"], ["off", "All off"]]) {
+        const b = document.createElement("button"); b.type = "button"; b.dataset.all = m; b.textContent = txt;
+        b.addEventListener("click", () => { for (const [g] of GROUPS) mode[g] = m; clearOwn(); iso = null; applyModes(); }); gEl.appendChild(b);
+      }
+    }
+    for (const [g, label, col] of GROUPS) {
+      const lab = document.createElement("span"); lab.className = "gl";
+      const sw = document.createElement("span"); sw.className = "sw"; sw.style.background = "#" + col.toString(16).padStart(6, "0");
+      const tx = document.createElement("span"); tx.textContent = label; lab.append(sw, tx); gEl.appendChild(lab);
+      for (const [m, txt] of [["solid", "Solid"], ["xray", "See-through"], ["off", "Off"]]) {
+        const b = document.createElement("button"); b.type = "button"; b.dataset.g = g; b.dataset.m = m; b.textContent = txt;
+        b.addEventListener("click", () => { mode[g] = m; clearOwn([g]); applyModes(); }); gEl.appendChild(b);
+      }
+    }
+    $("bAll").addEventListener("click", () => { for (const [g, , , m] of GROUPS) mode[g] = m; clearOwn(); iso = null; applyModes(); });
+    $("bOwn").addEventListener("click", () => { clearOwn(); applyModes(); });
+    $("markOn").addEventListener("click", () => setTool(MARK.on ? null : "mark"));
+    document.querySelectorAll("[data-mc]").forEach((b) => b.addEventListener("click", () => {
+      MARK.colour = b.dataset.mc; document.querySelectorAll("[data-mc]").forEach((q) => q.setAttribute("aria-pressed", String(q === b)));
+    }));
+    async function delIds(ids) {
+      for (const id of ids) delete MARK.docs[id];
+      markRender(MARK.docs); MARK.mine = MARK.mine.filter((x) => !ids.includes(x));
+      if (!MARK.db) return;
+      for (const id of ids) { try { await MARK.db.doc(COL_MARK + "/" + id).delete(); } catch (_) {} }
+      markStatus(`removed ${ids.length} piece(s)`);
+    }
+    $("markUndo").addEventListener("click", async () => {
+      const ent = Object.entries(MARK.docs).sort((a, b) => String(b[1].at).localeCompare(String(a[1].at)));
+      const last = MARK.mine.length ? [MARK.mine[MARK.mine.length - 1], MARK.docs[MARK.mine[MARK.mine.length - 1]]] : ent[0];
+      if (!last || !last[1]) { markStatus("no lines to undo"); return; }
+      const g = last[1].g || ("id:" + last[0]);
+      await delIds(Object.entries(MARK.docs).filter(([id, d]) => (d.g || ("id:" + id)) === g).map(([id]) => id));
+    });
+    $("markClear").addEventListener("click", async () => { const ids = MARK.mine.slice(); await delIds(ids); markStatus(ids.length ? `cleared ${ids.length} line(s)` : "no lines of yours from this visit"); });
+    function syncTop() { $("markTop").textContent = "Lines on top: " + (MARK.top ? "on" : "off"); $("markTop").setAttribute("aria-pressed", String(MARK.top)); }
+    $("markTop").addEventListener("click", () => { MARK.top = !MARK.top; syncTop(); markRender(MARK.docs); });
+    let armAll = 0;
+    $("markAll").addEventListener("click", async () => {
+      if (Date.now() - armAll > 4000) { armAll = Date.now(); $("markAll").textContent = "Tap again to clear ALL"; setTimeout(() => { $("markAll").textContent = "Clear all lines"; }, 4000); return; }
+      armAll = 0; $("markAll").textContent = "Clear all lines"; await delIds(Object.keys(MARK.docs));
+    });
+    let secRange = { front: [-100, 100], top: [-100, 100], right: [-100, 100] };
+    const AXL = { front: ["X", "Z"], top: ["X", "Y"], right: ["Y", "Z"] };
+    function secUI() {
+      const r = secRange[SEC.base];
+      for (const id of ["secOff", "secOffN"]) { $(id).min = r[0]; $(id).max = r[1]; $(id).value = SEC.off; }
+      $("secA").value = $("secAN").value = SEC.a; $("secB").value = $("secBN").value = SEC.b;
+      $("secAL").textContent = `Tilt about ${AXL[SEC.base][0]} °`; $("secBL").textContent = `Tilt about ${AXL[SEC.base][1]} °`;
+      const k = BASES[SEC.base].k; $("secOffL").textContent = `(${"xyz"[k]} = ${(SEC.C.getComponent(k) + SEC.off).toFixed(1)})`;
+      $("secOn").textContent = SEC.on ? "On" : "Off"; $("secOn").setAttribute("aria-pressed", String(SEC.on));
+      document.querySelectorAll("[data-sb]").forEach((b) => b.setAttribute("aria-pressed", String(SEC.on && b.dataset.sb === SEC.base)));
+      $("secCaps").setAttribute("aria-pressed", String(SEC.caps)); $("secShow").setAttribute("aria-pressed", String(SEC.show));
+      updateSection();
+    }
+    $("secOn").addEventListener("click", () => { SEC.on = !SEC.on; secUI(); });
+    document.querySelectorAll("[data-sb]").forEach((b) => b.addEventListener("click", () => {
+      if (SEC.base !== b.dataset.sb) { SEC.base = b.dataset.sb; SEC.off = 0; SEC.a = 0; SEC.b = 0; }
+      SEC.on = true; secUI();
+    }));
+    const bindNum = (r, n, key) => { $(r).addEventListener("input", () => { SEC[key] = +$(r).value; secUI(); }); $(n).addEventListener("change", () => { SEC[key] = +$(n).value; secUI(); }); };
+    bindNum("secOff", "secOffN", "off"); bindNum("secA", "secAN", "a"); bindNum("secB", "secBN", "b");
+    for (const id of ["secOff", "secOffN", "secA", "secAN", "secB", "secBN"]) $(id).addEventListener("input", () => {
+      SEC.peek = performance.now() + 1500; updateSection(); clearTimeout(SEC.peekT); SEC.peekT = setTimeout(updateSection, 1600);
+    });
+    $("secFlip").addEventListener("click", () => { SEC.flip = !SEC.flip; secUI(); });
+    $("secCaps").addEventListener("click", () => { SEC.caps = !SEC.caps; secUI(); });
+    $("secShow").addEventListener("click", () => { SEC.show = !SEC.show; secUI(); });
+    window.addEventListener("resize", resize);
+    const themeScene = () => { scene.background = new THREE.Color(css("--scene") || "#dfe3e1"); edgeMat.color.set(css("--muted") || "#5a6368"); dirty = true; };
+    if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", themeScene);
+    new MutationObserver(themeScene).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+    // ---------------------------------------------------------------- readout, HUD, gauges, inset, events, settings, controls
+    let shown = "";
+    const SPEED0 = CFG.speed0 || 1;
+    const speedLabel = (v) => { const b = document.querySelector(`[data-ts="${v}"]`); return b ? b.textContent : (v / SPEED0) + "×"; };
+    function show() {
+      const hud = M.hud ? M.hud(sim) : {};
+      const big = hud.big != null ? hud.big : sim.q[gi].toFixed(1) + " " + unit;
+      const state = (hud.state || "") + (sim.tscale !== SPEED0 ? ` · speed ${speedLabel(sim.tscale)}` : "") + (sim.slow ? " · sim slower" : "");
+      const rows = M.readouts ? M.readouts(sim) : M.dofs.map((d, i) => [d.label || d.key, sim.q[i].toFixed(2) + " " + (d.unit || "mm")]);
+      const gauges = M.gauges ? M.gauges(sim) : null;
+      const txt = JSON.stringify([big, state, rows, hud.chips, gauges && gauges.map((g) => g.value.toFixed(2))]);
+      if (txt === shown) return; shown = txt;
+      $("hud").hidden = false; $("hudBig").textContent = big; $("hudState").textContent = state;
+      const ch = $("chips"); ch.replaceChildren();
+      for (const c of hud.chips || []) { const s = document.createElement("span"); s.className = "chip" + (c.on ? " on" : ""); s.textContent = c.label; ch.appendChild(s); }
+      const rd = $("readout"); rd.replaceChildren();
+      for (const [a, b] of rows) { const x = document.createElement("span"); x.textContent = a; const y = document.createElement("span"); y.textContent = b; rd.append(x, y); }
+      const ga = $("gauges"); ga.hidden = !gauges; ga.replaceChildren();
+      for (const g of gauges || []) {
+        const l = document.createElement("span"); l.textContent = g.label;
+        const bar = document.createElement("span"); bar.className = "bar"; const i = document.createElement("i");
+        i.style.width = Math.max(0, Math.min(100, ((g.value - (g.min || 0)) / ((g.max || 1) - (g.min || 0))) * 100)) + "%"; bar.appendChild(i);
+        const v = document.createElement("span"); v.textContent = g.value.toFixed(g.digits != null ? g.digits : 2) + " " + (g.unit || "");
+        ga.append(l, bar, v);
+      }
+      syncButtons();
+    }
+    const IN = M.inset ? $("insetC") : null, ig = IN ? IN.getContext("2d") : null;
+    function drawInset() {
+      if (!IN) return;
+      const r = IN.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      if (IN.width !== Math.round(r.width * dpr)) { IN.width = Math.round(r.width * dpr); IN.height = Math.round(r.height * dpr); }
+      ig.setTransform(1, 0, 0, 1, 0, 0);
+      const s = M.inset.draw(ig, IN.width, IN.height, sim, css, dpr);
+      if (s != null) $("insetS").textContent = s;
+    }
+    let actx = null;
+    function ensureAudio() { try { if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) {} }
+    function onEvent(e) {
+      const txt = M.eventText ? M.eventText(e, sim) : e.kind === "stop" ? `STOP · ${Math.abs(e.val).toFixed(0)} ${unit}/s` : e.kind.toUpperCase();
+      if (!txt) return;
+      const fl = $("flash"); fl.textContent = txt;
+      fl.classList.add("on"); clearTimeout(onEvent.t); onEvent.t = setTimeout(() => fl.classList.remove("on"), 700);
+      if (!actx) return;
+      const n = actx.createBuffer(1, Math.round(actx.sampleRate * 0.03), actx.sampleRate), chd = n.getChannelData(0);
+      for (let i = 0; i < chd.length; i++) chd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (actx.sampleRate * 0.003));
+      const src = actx.createBufferSource(), flt = actx.createBiquadFilter(), g = actx.createGain();
+      flt.type = "bandpass"; flt.frequency.value = e.kind === "click" ? 2500 : 600; flt.Q.value = 3; g.gain.value = 0.6;
+      src.buffer = n; src.connect(flt).connect(g).connect(actx.destination); src.start();
+    }
+    const evq = []; sim.onEvent = (e) => evq.push(e);
+    function buildSettings() {
+      const box = $("settings"); box.replaceChildren();
+      const list = M.settings || [];
+      $("setPan").hidden = !list.length;
+      for (const [k, label, stp, min] of list) {
+        const l = document.createElement("label"); l.textContent = label; l.htmlFor = "set-" + k;
+        const i = document.createElement("input"); i.type = "number"; i.step = stp; if (min != null) i.min = min; i.id = "set-" + k; i.value = sim.P[k];
+        i.addEventListener("change", () => { const v = parseFloat(i.value); if (isFinite(v) && (min == null || v >= min)) { sim.P[k] = v; if (M.onSetting) M.onSetting(sim, k, v); } else i.value = sim.P[k]; });
+        box.append(l, i);
+      }
+    }
+    function setSpeed(v) { sim.tscale = v; document.querySelectorAll("[data-ts]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.ts === v))); }
+    for (const [f, lab] of [[1, "1×"], [0.5, "½×"], [0.25, "¼×"], [0.125, "⅛×"]]) {
+      const b = document.createElement("button"); b.type = "button"; b.dataset.ts = String(SPEED0 * f); b.textContent = lab;
+      b.addEventListener("click", () => setSpeed(SPEED0 * f)); $("speedB").appendChild(b);
+    }
+    const doReset = (where) => { endHold(); sim.reset(where); pose(); drawInset(); };
+    for (const r of M.resets || [{ label: "Reset" }]) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = r.label; b.addEventListener("click", () => doReset(r.where)); $("resets").appendChild(b);
+    }
+    const btns = [];
+    for (const bd of M.buttons || []) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = bd.label;
+      b.addEventListener("click", () => { bd.press(sim); shown = ""; }); $("buttons").appendChild(b); btns.push([b, bd]);
+    }
+    $("controlsPan").hidden = !btns.length;
+    function syncButtons() {
+      for (const [b, bd] of btns) {
+        if (bd.active) b.setAttribute("aria-pressed", String(!!bd.active(sim)));
+        if (bd.text) b.textContent = bd.text(sim);
+      }
+    }
+    $("design").addEventListener("click", () => { Object.assign(sim.P, M.design || {}); if (M.onSetting) M.onSetting(sim, null, null); buildSettings(); });
+    const PKEY = "mpg." + slug + ".panels", pans = [...document.querySelectorAll("details.pan")];
+    try { const s = JSON.parse(localStorage.getItem(PKEY) || "null"); if (s) pans.forEach((d) => { if (d.dataset.k in s) d.open = !!s[d.dataset.k]; }); } catch (_) {}
+    pans.forEach((d) => d.addEventListener("toggle", () => { const s = {}; pans.forEach((q) => { s[q.dataset.k] = q.open; }); try { localStorage.setItem(PKEY, JSON.stringify(s)); } catch (_) {} }));
+    function setMenu(open) {
+      document.body.classList.toggle("menu-open", open); $("menuBtn").setAttribute("aria-expanded", String(open)); $("scrim").hidden = !open;
+      if (open) $("sideClose").focus({ preventScroll: true });
+    }
+    $("menuBtn").addEventListener("click", () => setMenu(true));
+    $("sideClose").addEventListener("click", () => { setMenu(false); $("menuBtn").focus({ preventScroll: true }); });
+    $("scrim").addEventListener("click", () => setMenu(false));
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("menu-open")) setMenu(false); });
+    if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+
+    // ---------------------------------------------------------------- load + loop
+    (async () => {
+      try {
+        for (const p of D.parts) {
+          const g = p.group;
+          let mat = MAT[g];
+          if (p.colour) { mat = MAT[g].clone(); mat.color.setHex(hex(p.colour)); }
+          (matsOf[g] = matsOf[g] || []).includes(mat) || matsOf[g].push(mat);
+          const mesh = new THREE.Mesh(await geom(p.mesh), mat);
+          mesh.matrixAutoUpdate = false;                          // poses come as full matrices
+          scene.add(mesh);
+          const o = { p, g, mesh }; mesh.userData.o = o; objs.push(o); byId[p.id] = o;
+        }
+      } catch (err) { fail("Couldn't unpack the model in this browser (" + err.message + "). Try a current Chrome, Edge or Safari."); return; }
+      $("loading").hidden = true;
+      if (M.pageInit) await M.pageInit(sim);
+      sim.reset(M.resets && M.resets[0] ? M.resets[0].where : undefined);
+      pose(); scene.updateMatrixWorld();
+      const bb = new THREE.Box3(); for (const o of objs) bb.expandByObject(o.mesh);
+      const c = bb.getCenter(new THREE.Vector3()), sz = bb.getSize(new THREE.Vector3());
+      modelSize = Math.max(1, sz.x, sz.y, sz.z);
+      SEC.C.copy(CFG.sectionCentre ? new THREE.Vector3(...CFG.sectionCentre) : c);
+      secRange = { front: [bb.min.y - SEC.C.y - 5, bb.max.y - SEC.C.y + 5], top: [bb.min.z - SEC.C.z - 5, bb.max.z - SEC.C.z + 5], right: [bb.min.x - SEC.C.x - 5, bb.max.x - SEC.C.x + 5] };
+      VIEWS = Object.assign({ iso: { t: [c.x, c.y, c.z], r: modelSize * 2.6, th: -2.3, ph: 0.32, label: "Iso" } }, CFG.views || {});
+      for (const [k, v] of Object.entries(VIEWS)) {
+        const b = document.createElement("button"); b.type = "button"; b.dataset.view = k; b.textContent = v.label || k;
+        b.addEventListener("click", () => setView(k)); $("views").appendChild(b);
+      }
+      if (M.inset) { $("inset").hidden = false; $("insetT").textContent = M.inset.title || ""; }
+      buildSettings(); setSpeed(SPEED0); buildCaps();
+      themeScene(); resize(); setView(CFG.defaultView || "iso"); applyModes(); secUI(); show(); drawInset();
+      dbReady.then(paintConnect);
+      const VKEY = "mpg." + slug + ".view";
+      const viewState = () => JSON.stringify({ cam, mode, sec: { on: SEC.on, base: SEC.base, off: SEC.off, a: SEC.a, b: SEC.b, flip: SEC.flip, caps: SEC.caps },
+        mark: { colour: MARK.colour, top: MARK.top }, parts: Object.fromEntries(objs.filter((o) => o.pm).map((o) => [o.p.id, o.pm])) });
+      try {
+        const s = JSON.parse(localStorage.getItem(VKEY) || "null");
+        if (s) {
+          Object.assign(cam, s.cam || {});
+          for (const k in s.mode || {}) if (k in mode) mode[k] = s.mode[k];
+          for (const [id, pm] of Object.entries(s.parts || {})) { const o = byId[id]; if (o) { ownMat(o); o.pm = pm; } }
+          Object.assign(SEC, s.sec || {});
+          if (s.mark) { MARK.colour = s.mark.colour || MARK.colour; MARK.top = !!s.mark.top; }
+          document.querySelectorAll("[data-mc]").forEach((q) => q.setAttribute("aria-pressed", String(q.dataset.mc === MARK.colour)));
+          document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+          applyModes(); secUI(); syncTop();
+        }
+      } catch (_) {}
+      let lastSaved = viewState();
+      setInterval(() => { const v = viewState(); if (v !== lastSaved) { lastSaved = v; try { localStorage.setItem(VKEY, v); } catch (_) {} } }, 1000);
+      window.__play = { sim, mech: M, view: setView, mode: (g, m) => { mode[g] = m; applyModes(); }, selRect: () => sel && partRect(sel), objs };
+      post({ type: "mpg-loaded", name: B.name });
+      let last = performance.now(), stopped = false;
+      const frame = (now) => {
+        const dt = Math.min(0.05, (now - last) / 1000); last = now;
+        if (!stopped) {
+          try {
+            if (hold && now - hold.tLast > 60) { hold.vh *= 0.5; sim.drag(hold.target, hold.vh); }
+            const q0 = sim.q.join(",");
+            sim.step(dt);
+            if (sim.q.join(",") !== q0 || M.alwaysPose) { pose(); drawInset(); }
+            while (evq.length) onEvent(evq.shift());
+            show(); flushOverlays();
+          } catch (err) { stopped = true; fail("The simulation stopped: " + (err && err.message || err) + "\nUse a Reset button to start again."); }
+        }
+        if (dirty) { dirty = false; placeCamera(); syncEdges(); renderer.render(scene, camera); }
+        requestAnimationFrame(frame);
+      };
+      // a reset after an error starts the loop again
+      $("resets").addEventListener("click", () => { if (stopped) { stopped = false; $("err").hidden = true; } });
+      requestAnimationFrame(frame);
+    })();
+  }
+})();
+</script>

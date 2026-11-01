@@ -27,6 +27,35 @@
     if (map.data && typeof map.data !== "string") return map;
     return Object.assign({}, map, { data: new Uint8Array(await inflate(map.data_b64 || map.data)) });
   }
-  const BUNDLE = { inflate, decodeMesh, decodeMap };
+  const FORMAT = "mechanism-playground/1";
+  // null when the bundle can run, else a message that names the problem
+  function check(B) {
+    if (!B || typeof B !== "object") return "This is not a playground bundle (no JSON object).";
+    if (typeof B.format !== "string" || !B.format.startsWith("mechanism-playground/"))
+      return `This file is not a playground bundle (format: ${JSON.stringify(B.format)}).`;
+    if (B.format.split("/")[1].split(".")[0] !== "1")
+      return `This bundle needs a newer playground (format ${B.format}; this player reads ${FORMAT}).`;
+    if (!B.data || !Array.isArray(B.data.parts)) return "The bundle has no parts (data.parts).";
+    if (typeof B.mech !== "string" || !B.mech.trim()) return "The bundle has no mechanism code (mech).";
+    return null;
+  }
+  // run the bundle's mechanism.js source; it must `return { dofs, mass, forces, ... }`
+  const NAMES = ["CORE", "SPRINGS", "PNEUMATICS", "LINKAGE2D", "CONTACT", "MAT4", "MASSTABLE", "BUNDLE"];
+  function libs() {
+    if (isNode) {
+      const p = require("path"), d = __dirname, r = (f) => require(p.join(d, f));
+      return [r("core.js"), r("modules/springs.js"), r("modules/pneumatics.js"), r("modules/linkage2d.js"), r("modules/contact_map.js"),
+        r("mat4.js"), r("mass_table.js"), BUNDLE];
+    }
+    return NAMES.map((n) => root[n]);
+  }
+  function makeMech(B) {
+    const f = new Function(...NAMES, "DATA", "CONFIG", "\"use strict\";\n" + B.mech);
+    const M = f(...libs(), B.data, B.config || {});
+    if (!M || !Array.isArray(M.dofs) || !M.dofs.length) throw new Error("mechanism.js must return an object with a dofs array");
+    if (typeof M.mass !== "function" || typeof M.forces !== "function") throw new Error("mechanism.js must return mass() and forces() functions");
+    return M;
+  }
+  const BUNDLE = { inflate, decodeMesh, decodeMap, check, makeMech, FORMAT };
   if (typeof module !== "undefined" && module.exports) module.exports = BUNDLE; else root.BUNDLE = BUNDLE;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1,0 +1,6 @@
+{
+  "description": "A 3 kg lid on a box with one gas strut. Lift the lid by its front edge: below about 68 degrees its weight wins and it falls shut; above that the strut wins and lifts it to the 95 degree stop. Change the strut force in Settings and try again.",
+  "notes": ["Starter example for the mechanism playground. Parts are made by make_parts.py; the lid's mass, centre of mass and inertia come from its mesh (build/pack.py). The physics is in mechanism.js: one DOF (lid angle), weight torque from the mass table, gas strut torque from its length change, hinge friction."],
+  "views": { "side": { "label": "Side", "t": [0, 0, 180], "r": 1300, "th": 0.0, "ph": 0.05 } },
+  "speed0": 1
+}
