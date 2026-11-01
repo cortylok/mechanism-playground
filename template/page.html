@@ -252,6 +252,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/three-mesh-bvh@0.5.23/build/index.umd.cjs"></script>
 <script>/*__PHYSICS__*/</script>
 <script>window.MPG_BUNDLE = /*__BUNDLE__*/null;</script>
 <script>
@@ -294,7 +295,42 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     const stage = $("stage");
     const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    const BASE_DPR = Math.min(2, window.devicePixelRatio || 1);
+    renderer.setPixelRatio(BASE_DPR);
+    // performance (2026-11-01): on a slow device (frames over 22 ms while moving, 8 times) the view drops to 60 % resolution
+    // while it moves and returns to full resolution 0.2 s after it stops. A fast GPU never switches (it would only blur).
+    const RES = { low: false, until: 0, auto: false, slow: 0, lastT: 0 };
+    // the picking tree re-orders a mesh's triangles (whole triangles, vertex order kept): map back to the packed order once
+    function origTri(g, f) {
+      if (f == null) return -1;
+      const I0 = g.userData.idx0; if (!g.boundsTree || !I0) return f;
+      if (!g.userData.c2o) {
+        const cur = g.index.array, n = I0.length / 3, N = g.attributes.position.count, big = N * N * N > 9e15;
+        const key = (A, t) => (big ? A[t * 3] + "," + A[t * 3 + 1] + "," + A[t * 3 + 2] : (A[t * 3] * N + A[t * 3 + 1]) * N + A[t * 3 + 2]);
+        const m = new Map(); for (let t = 0; t < n; t++) m.set(key(I0, t), t);
+        const c2o = new Int32Array(n); for (let t = 0; t < n; t++) { const v = m.get(key(cur, t)); c2o[t] = v == null ? -1 : v; }
+        g.userData.c2o = c2o;
+      }
+      return g.userData.c2o[f];
+    }
+    async function buildTrees() {
+      if (!BVH) return;
+      const list = objs.map((o) => o.mesh.geometry).filter((g, i, a) => a.indexOf(g) === i && g.index && g.index.count > 6000).sort((a, b) => b.index.count - a.index.count);
+      for (const g of list) { await new Promise((r) => setTimeout(r, 30)); try { g.computeBoundsTree(); } catch (_) {} }
+    }
+    function poke() { RES.until = performance.now() + 200; if (RES.auto && !RES.low) { RES.low = true; renderer.setPixelRatio(BASE_DPR * 0.6); resize(); } }
+    function resIdle(now) {
+      if (now < RES.until && !RES.auto) {                            // while moving: count slow frames
+        const d = now - RES.lastT;
+        if (RES.lastT && d > 22) RES.slow++; else if (d < 18 && RES.slow > 0) RES.slow--;
+        if (RES.slow >= 8) RES.auto = true;
+      }
+      RES.lastT = now;
+      if (RES.low && now > RES.until) { RES.low = false; renderer.setPixelRatio(BASE_DPR); resize(); }
+    }
+    // fast picking: bounding-volume trees on the meshes (click, wheel zoom, paint, marker)
+    const BVH = window.MeshBVHLib;
+    if (BVH) { THREE.BufferGeometry.prototype.computeBoundsTree = BVH.computeBoundsTree; THREE.BufferGeometry.prototype.disposeBoundsTree = BVH.disposeBoundsTree; THREE.Mesh.prototype.raycast = BVH.acceleratedRaycast; }
     renderer.domElement.className = "gl";
     stage.appendChild(renderer.domElement);
     const el = renderer.domElement;
@@ -310,6 +346,8 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
     scene.add(key); scene.add(key.target);
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.autoUpdate = false; renderer.shadowMap.needsUpdate = true;   // redrawn only when a part or a mode changes
+    const shadowDirty = () => { renderer.shadowMap.needsUpdate = true; };
     const LOOK = { outline: false, shadow: true, env: true };
     let envTex = null;
     // bounce light: image-based lighting from a small studio "room" (bright ceiling panel, two side panels, warm floor),
@@ -426,6 +464,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       EDGE.allOff = allOff;
       EDGE.root.visible = allOff || LOOK.outline; if (EDGE.root.visible) buildEdges();
       edgeMat.color.set(allOff ? (css("--muted") || "#5a6368") : "#16191b"); edgeMat.opacity = allOff ? 0.6 : 0.55;
+      shadowDirty();
       for (const o of objs) { o.mesh.castShadow = LOOK.shadow && pmode(o) === "solid"; o.mesh.receiveShadow = LOOK.shadow; }
       dirty = true;
     }
@@ -455,13 +494,14 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       let g = new THREE.BufferGeometry();
       g.setAttribute("position", new THREE.BufferAttribute(position, 3));
       g.setIndex(new THREE.BufferAttribute(index, 1));
-      g = g.toNonIndexed(); g.computeVertexNormals(); g.computeBoundingSphere();
+      g.userData.idx0 = index.slice(); g.computeBoundingSphere();   // indexed: 1/3 of the vertices (flat shading needs no normals)
       return g;
     }
     function pose() {
       const P = M.pose ? M.pose(sim) : null;
       if (!P) return;
       for (const id in P) { const o = byId[id]; if (!o) continue; o.mesh.matrix.fromArray(P[id]); o.mesh.matrixWorldNeedsUpdate = true; }
+      shadowDirty();
       dirty = true;
     }
 
@@ -529,6 +569,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       sim.grab(); ensureAudio(); return true;
     }
     function moveHold(cx, cy) {
+      poke();
       if (!hold) return;
       const now = performance.now(), target = hold.q0 + ((cx - hold.x0) * hold.ux + (cy - hold.y0) * hold.uy) / hold.n;
       const dt = Math.max(1, now - hold.tLast) / 1000, v = ((target - hold.target) / dt) / Math.max(1e-9, sim.tscale);
@@ -538,6 +579,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     function endHold() { if (hold) { hold = null; sim.release(); } }
     const ZUP = new THREE.Vector3(0, 0, 1);
     function orbit(dx, dy, p) {
+      poke();
       const k = Math.PI / Math.max(300, el.clientWidth);
       const dth = -dx * k, ph1 = Math.max(-1.5, Math.min(1.5, cam.ph + dy * k)), dph = ph1 - cam.ph;
       if (p) {
@@ -548,6 +590,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       cam.th += dth; cam.ph = ph1; dirty = true;
     }
     function pan(dx, dy, p) {
+      poke();
       placeCamera(); camera.updateMatrixWorld();
       const right = new THREE.Vector3(), up = new THREE.Vector3(), fwd = new THREE.Vector3();
       camera.matrixWorld.extractBasis(right, up, new THREE.Vector3()); camera.getWorldDirection(fwd);
@@ -573,6 +616,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     }
     const rMax = () => modelSize * 12;
     function zoomAt(f, cx, cy) {
+      poke();
       const r1 = Math.max(modelSize / 400, Math.min(rMax(), cam.r * f)), k = r1 / cam.r, p = zoomPoint(cx, cy);
       if (p) { cam.tx = p.x + (cam.tx - p.x) * k; cam.ty = p.y + (cam.ty - p.y) * k; cam.tz = p.z + (cam.tz - p.z) * k; }
       cam.r = r1; dirty = true;
@@ -810,11 +854,12 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
     const PALC = PAL.map(([hx]) => new THREE.Color(hx));
     function paintState(o) {
       let s = PS.get(o); if (s) return s;
-      const pos = o.mesh.geometry.attributes.position.array, n = pos.length / 9;
+      const gg = o.mesh.geometry, pos = gg.attributes.position.array, I0 = gg.userData.idx0, n = I0 ? I0.length / 3 : pos.length / 9;
+      const vtx = (t, k) => (I0 ? I0[t * 3 + k] : t * 3 + k) * 3;
       const cen = new Float32Array(n * 3), nor = new Float32Array(n * 3), area = new Float32Array(n), grid = new Map(), C = Math.max(0.5, modelSize / 250);
       for (let t = 0; t < n; t++) {
-        const q = t * 9, ax = pos[q], ay = pos[q + 1], az = pos[q + 2], bx = pos[q + 3] - ax, by = pos[q + 4] - ay, bz = pos[q + 5] - az;
-        const cx = pos[q + 6] - ax, cy = pos[q + 7] - ay, cz = pos[q + 8] - az;
+        const qa = vtx(t, 0), qb = vtx(t, 1), qc = vtx(t, 2), ax = pos[qa], ay = pos[qa + 1], az = pos[qa + 2], bx = pos[qb] - ax, by = pos[qb + 1] - ay, bz = pos[qb + 2] - az;
+        const cx = pos[qc] - ax, cy = pos[qc + 1] - ay, cz = pos[qc + 2] - az;
         const nx = by * cz - bz * cy, ny = bz * cx - bx * cz, nz = bx * cy - by * cx, l = Math.hypot(nx, ny, nz) || 1;
         area[t] = l / 2; nor[t * 3] = nx / l; nor[t * 3 + 1] = ny / l; nor[t * 3 + 2] = nz / l;
         const x = ax + (bx + cx) / 3, y = ay + (by + cy) / 3, z = az + (bz + cz) / 3;
@@ -822,7 +867,7 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
         const k = Math.floor(x / C) + "," + Math.floor(y / C) + "," + Math.floor(z / C);
         (grid.get(k) || grid.set(k, []).get(k)).push(t);
       }
-      s = { o, n, cen, nor, area, grid, C, paint: new Int8Array(n).fill(-1), ov: null };
+      s = { o, n, cen, nor, area, grid, C, vtx, paint: new Int8Array(n).fill(-1), ov: null };
       PS.set(o, s); return s;
     }
     function setTri(s, t, c) {
@@ -835,10 +880,10 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       const list = []; for (let t = 0; t < s.n; t++) if (s.paint[t] >= 0) list.push(t);
       if (s.ov) { s.o.mesh.remove(s.ov); s.ov.geometry.dispose(); s.ov = null; }
       if (!list.length) return;
-      const src = s.o.mesh.geometry.attributes.position.array, srn = s.o.mesh.geometry.attributes.normal.array;
+      const src = s.o.mesh.geometry.attributes.position.array;
       const P = new Float32Array(list.length * 9), N = new Float32Array(list.length * 9), Cc = new Float32Array(list.length * 9);
       list.forEach((t, i) => {
-        P.set(src.subarray(t * 9, t * 9 + 9), i * 9); N.set(srn.subarray(t * 9, t * 9 + 9), i * 9);
+        for (let k = 0; k < 3; k++) { const a = s.vtx(t, k); P.set([src[a], src[a + 1], src[a + 2]], i * 9 + k * 3); N.set([s.nor[t * 3], s.nor[t * 3 + 1], s.nor[t * 3 + 2]], i * 9 + k * 3); }
         const c = PALC[s.paint[t]]; for (let v = 0; v < 3; v++) Cc.set([c.r, c.g, c.b], i * 9 + v * 3);
       });
       const g = new THREE.BufferGeometry();
@@ -852,9 +897,10 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       return hits.find((q) => pmode(q.object.userData.o) === "solid") || hits[0] || null;
     }
     function brushAt(h) {
-      const o = h.object.userData.o, s = paintState(o), t0 = h.faceIndex, c = PAINT.erase ? -1 : PAINT.colour;
-      if (t0 == null || t0 >= s.n) return;
-      const p = h.point.clone().applyMatrix4(new THREE.Matrix4().copy(o.mesh.matrixWorld).invert());
+      const o = h.object.userData.o, s = paintState(o), c = PAINT.erase ? -1 : PAINT.colour;
+            const p = h.point.clone().applyMatrix4(new THREE.Matrix4().copy(o.mesh.matrixWorld).invert());
+      const t0 = origTri(o.mesh.geometry, h.faceIndex);              // the hit triangle in packed order (the picking tree re-orders the index)
+      if (t0 == null || t0 < 0 || t0 >= s.n) return;
       setTri(s, t0, c);
       const R = PAINT.brush * Math.max(1, modelSize / 500); if (R <= 0) return;
       const nx = s.nor[t0 * 3], ny = s.nor[t0 * 3 + 1], nz = s.nor[t0 * 3 + 2], gk = Math.ceil(R / s.C);
@@ -1251,9 +1297,15 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
       } catch (_) {}
       let lastSaved = viewState();
       setInterval(() => { const v = viewState(); if (v !== lastSaved) { lastSaved = v; try { localStorage.setItem(VKEY, v); } catch (_) {} } }, 1000);
-      window.__play = { sim, mech: M, view: setView, mode: (g, m) => { mode[g] = m; applyModes(); }, selRect: () => sel && partRect(sel), objs };
+      window.__play = { sim, mech: M, view: setView, mode: (g, m) => { mode[g] = m; applyModes(); }, selRect: () => sel && partRect(sel), objs,
+        // test hooks: ms per orbit frame (full resolution, shadows as set) and ms per pick (the click / wheel / paint ray)
+        bench: (n = 30) => { const t0 = performance.now(); for (let i = 0; i < n; i++) { cam.th += 0.02; placeCamera(); syncEdges(); renderer.render(scene, camera); } renderer.getContext().finish(); dirty = true; return (performance.now() - t0) / n; },
+        pick: (n = 20) => { const r = el.getBoundingClientRect(), t0 = performance.now(); for (let i = 0; i < n; i++) pointUnder(r.left + r.width * (0.3 + 0.4 * i / n), r.top + r.height * 0.55); return (performance.now() - t0) / n; },
+        slowDevice: () => RES.auto,
+        painted: () => { let n = 0; for (const s of PS.values()) for (let t = 0; t < s.n; t++) if (s.paint[t] >= 0) n++; return n; } };
       post({ type: "mpg-loaded", name: B.name });
-      let last = performance.now(), stopped = false;
+      let last = performance.now(), stopped = false, lastShow = 0;
+      buildTrees();
       const frame = (now) => {
         const dt = Math.min(0.05, (now - last) / 1000); last = now;
         if (!stopped) {
@@ -1263,9 +1315,10 @@ details.settings summary { cursor: pointer; font: 600 13px var(--f-mono); text-t
             sim.step(dt);
             if (sim.q.join(",") !== q0 || M.alwaysPose) { pose(); drawInset(); }
             while (evq.length) onEvent(evq.shift());
-            show(); flushOverlays();
+            if (now - lastShow > 100) { show(); lastShow = now; } flushOverlays();
           } catch (err) { stopped = true; fail("The simulation stopped: " + (err && err.message || err) + "\nUse a Reset button to start again."); }
         }
+        resIdle(now);
         if (dirty) { dirty = false; placeCamera(); syncEdges(); renderer.render(scene, camera); }
         requestAnimationFrame(frame);
       };
